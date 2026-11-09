@@ -1,0 +1,8 @@
+node_modules/
+dist/
+data/raw/
+data/build-tmp/
+public/data.previous/
+__pycache__/
+.pytest_cache/
+*.pyc

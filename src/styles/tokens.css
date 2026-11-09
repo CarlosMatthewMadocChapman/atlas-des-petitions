@@ -1,0 +1,87 @@
+/* Design system — L'Atlas des pétitions
+   Atlas civique : ivoire, encre, gris minéraux, un seul rouge vif employé avec retenue. */
+
+:root {
+  color-scheme: light;
+
+  /* Couleurs de base */
+  --paper: #f6f1e6;
+  --paper-raised: #fbf8f0;
+  --paper-sunk: #ece5d3;
+  --ink: #15130f;
+  --ink-soft: #3a362e;
+  --mineral: #66635b; /* 5,2:1 sur --paper */
+  --rule: #d6ccb4;
+  --rule-strong: #b9ad90;
+  --accent: #c0361a; /* 5,3:1 sur --paper */
+  --accent-ink: #9d2a13;
+  --accent-wash: #f3dcd3;
+  --focus: #0b57d0;
+
+  /* Statuts (texte + fond, toujours accompagnés d'un libellé) */
+  --st-ouverte-ink: #1c5b3d;
+  --st-ouverte-bg: #dbeadb;
+  --st-archivee-ink: #4a4740;
+  --st-archivee-bg: #e4ddca;
+  --st-classee-ink: #7a3a14;
+  --st-classee-bg: #f1dfc6;
+  --st-expiree-ink: #5b3d6e;
+  --st-expiree-bg: #e6dcee;
+
+  /* Relations */
+  --rel-proche: #c0361a;
+  --rel-complementaire: #2a5290;
+  --rel-comparaison: #7a5a00;
+  --rel-thematique: #8f8a7c;
+
+  /* Typographie */
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --font-text: 'Instrument Sans Variable', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Menlo, monospace;
+
+  --step--2: 0.75rem;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.125rem;
+  --step-2: 1.375rem;
+  --step-3: clamp(1.6rem, 1.3rem + 1.1vw, 2.1rem);
+  --step-4: clamp(2.1rem, 1.5rem + 2.4vw, 3.2rem);
+  --step-5: clamp(2.6rem, 1.4rem + 5vw, 5.2rem);
+
+  /* Espacement (échelle de 4 px) */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+  --s-9: 7rem;
+
+  /* Forme et mouvement */
+  --radius-s: 3px;
+  --radius-m: 8px;
+  --radius-l: 14px;
+  --shadow-lift: 0 1px 0 rgb(21 19 15 / 0.06), 0 10px 30px -12px rgb(21 19 15 / 0.25);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur: 180ms;
+
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  --measure: 66ch;
+  --container: 1240px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}
