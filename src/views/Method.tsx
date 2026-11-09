@@ -165,6 +165,11 @@ export function Method() {
               {' '}en indiquant les numéros de pétitions concernés. Les corrections retenues sont appliquées à chaque mise à jour de l'Atlas. Pour une
               erreur dans le texte d'une pétition elle-même, la source est le site officiel.
             </p>
+            <p>
+              Le code et les données de l'Atlas sont publics :{' '}
+              <a href="https://github.com/CarlosMatthewMadocChapman/atlas-des-petitions" target="_blank" rel="noopener noreferrer">dépôt atlas-des-petitions</a>.
+              {' '}Chacun peut voir comment il fonctionne, le vérifier et en faire sa propre copie ; seul Radio du Futur peut modifier ce dépôt et ce site.
+            </p>
           </section>
 
           <section id="fraicheur">
