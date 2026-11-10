@@ -65,6 +65,10 @@ describe('pages statiques de l\'Atlas', () => {
       expect(html).toContain('name="robots" content="index,follow"');
       expect(html).toContain(`petitions.assemblee-nationale.fr/initiatives/i-${id}`);
       expect(html).toContain('on ne peut pas y signer');
+      expect(html).toContain('Un projet de Radio du Futur');
+      expect(html).toContain('https://radiodufutur.com/projets/');
+      expect(html).toContain('https://radiodufutur.com/participer/');
+      expect(html).toContain(`https://suiteadonner.nucom.fr/petition/${id}`);
       const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
       expect(ld['@type']).toBe('WebPage');
       expect(ld.breadcrumb.itemListElement.length).toBeGreaterThan(0);

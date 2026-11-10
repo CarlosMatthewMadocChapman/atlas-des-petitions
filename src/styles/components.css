@@ -17,6 +17,33 @@
   padding-block: var(--s-3);
 }
 
+.header__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.header__origin {
+  color: var(--mineral);
+  font-size: 0.78rem;
+  line-height: 1.3;
+  text-decoration-thickness: 1px;
+  white-space: nowrap;
+}
+.header__origin:hover {
+  color: var(--accent-ink);
+}
+@media (max-width: 1000px) {
+  .header__bar {
+    flex-wrap: wrap;
+    row-gap: var(--s-2);
+  }
+  .header__bar > .nav { width: 100%; }
+}
+@media (max-width: 520px) {
+  .header__origin { font-size: 0.74rem; }
+}
 .wordmark {
   display: inline-flex;
   align-items: center;

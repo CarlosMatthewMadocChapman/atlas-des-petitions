@@ -83,6 +83,12 @@ export function PetitionView() {
         <p className="petition__warning">
           L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel de l'Assemblée nationale.
         </p>
+        <p className="source-note">
+          Pour suivre les éventuelles suites parlementaires :{' '}
+          <a href={`https://suiteadonner.nucom.fr/petition/${encodeURIComponent(petition.id)}`} target="_blank" rel="noopener noreferrer">
+            Consulter cette pétition sur « Suite à donner »
+          </a>. Cet observatoire indépendant suit le parcours des pétitions ; toutes n'ont pas reçu de décision.
+        </p>
       </header>
 
       <div className="petition__layout">

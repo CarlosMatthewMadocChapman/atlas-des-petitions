@@ -40,7 +40,8 @@ export function Method() {
         <p className="eyebrow">Méthode et données</p>
         <h1>Ce que l'Atlas sait, ce qu'il calcule, ce qu'il ignore</h1>
         <p className="lede">
-          L'Atlas des pétitions est une <strong>expérimentation indépendante</strong>. Il n'est affilié ni à l'Assemblée nationale ni à aucune institution, ne permet pas de signer, et ne prend
+          L'Atlas des pétitions est une <strong>expérimentation indépendante</strong> créée par Carlos Chapman pour{' '}
+          <a href="https://radiodufutur.com/">Radio du Futur</a>. Il n'est affilié ni à l'Assemblée nationale ni à aucune institution, ne permet pas de signer, et ne prend
           aucune position sur le fond des pétitions.
         </p>
       </header>
@@ -49,6 +50,7 @@ export function Method() {
         <nav className="method__toc" aria-label="Sommaire de la page">
           <ol>
             <li><a href="#sources">D'où viennent les informations</a></li>
+            <li><a href="#autres-projets">Autres observatoires citoyens</a></li>
             <li><a href="#mesure">Ce qui est mesuré, ce qui reste inconnu</a></li>
             <li><a href="#classement">Comment les pétitions sont classées</a></li>
             <li><a href="#rapprochements">Comment on les rapproche</a></li>
@@ -63,10 +65,10 @@ export function Method() {
           <section id="sources">
             <h2>D'où viennent les informations</h2>
             <p>
-              Toutes les pétitions proviennent du jeu de données ouvert{' '}
+              Le catalogue s'appuie principalement sur le jeu de données ouvert{' '}
               <a href={meta.dataset_page} target="_blank" rel="noopener noreferrer">« Pétitions de l'Assemblée nationale »</a> publié sur data.gouv.fr, sous{' '}
               <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" target="_blank" rel="noopener noreferrer">Licence Ouverte / Open Licence 2.0</a>. Le fichier est actualisé
-              chaque lundi par ses producteurs ; l'Atlas le relit, sans solliciter le site parlementaire pour reconstituer ce qui est déjà publié.
+              chaque lundi par ses producteurs. Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas.
             </p>
             <p>
               Les titres, descriptions, dates, nombres de soutiens, statuts, commissions, décisions et liens officiels sont repris <strong>tels quels</strong>. Chaque fiche renvoie vers la
@@ -77,10 +79,27 @@ export function Method() {
             </p>
           </section>
 
+          <section id="autres-projets">
+            <h2>Autres observatoires citoyens</h2>
+            <p>
+              <a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">« Suite à donner »</a>{' '}
+              est un observatoire indépendant qui suit le devenir des pétitions à l'Assemblée nationale, notamment
+              les décisions des commissions. L'Atlas permet de découvrir et de rapprocher les demandes ; les deux approches
+              se prolongent. Chaque fiche de pétition de l'Atlas propose un lien direct vers le numéro correspondant dans cet observatoire.
+            </p>
+            <p>
+              L'observatoire a également publié un{' '}
+              <a href="https://suiteadonner.nucom.fr/absentes-du-fichier" target="_blank" rel="noopener noreferrer">relevé des pétitions absentes du fichier ouvert</a>,
+              en réponse à un{' '}
+              <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement technique public</a>.
+              Ce travail permet de comparer les relevés et d'améliorer les données disponibles.
+            </p>
+          </section>
+
           <section id="mesure">
             <h2>Ce qui est mesuré, ce qui reste inconnu</h2>
             <p>
-              <strong>Mesuré</strong> : le nombre de pétitions du fichier ({total.toLocaleString('fr-FR')}), leurs dates de dépôt, le nombre de soutiens <em>à la date du fichier</em>, le statut et la commission.
+              <strong>Mesuré</strong> : le nombre de pétitions du catalogue ({total.toLocaleString('fr-FR')}), leurs dates de dépôt, le nombre de soutiens <em>à la date du fichier</em>, le statut et la commission.
             </p>
             <p>
               <strong>Inconnu ou non fiable</strong> : les soutiens ne sont pas un compteur en temps réel ; le fichier ne dit pas pourquoi une pétition est absente ; la législature est vide pour

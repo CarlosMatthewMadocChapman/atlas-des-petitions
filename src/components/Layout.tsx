@@ -70,6 +70,10 @@ function Footer() {
             Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici :
             chaque fiche renvoie vers la pétition officielle.
           </p>
+          <p className="footer__lede">Créé par <strong>Carlos Chapman</strong> dans le cadre de{' '}
+            <a href="https://radiodufutur.com/">Radio du Futur</a>, un espace de musiques, de récits et d'expérimentations citoyennes.
+          </p>
+          <p className="footer__lede"><a href="https://radiodufutur.com/projets/">Explorer les projets de Radio du Futur ↗</a></p>
         </div>
         <div>
           <h2 className="eyebrow">Données</h2>
@@ -95,6 +99,8 @@ function Footer() {
           <ul className="footer__links">
             <li><Link to="/methode">Méthode et données</Link></li>
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
+            <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>
+            <li><a href="https://radiodufutur.com/participer/">Participer à Radio du Futur ↗</a></li>
             <li><Link to="/favoris">Vos favoris (stockés sur cet appareil)</Link></li>
           </ul>
           <p className="muted">Aucun compte, aucun suivi publicitaire, aucun cookie de mesure.</p>
@@ -112,7 +118,10 @@ export function Layout() {
       </a>
       <header className="header">
         <div className="container header__bar">
-          <Wordmark />
+          <div className="header__identity">
+            <Wordmark />
+            <a className="header__origin" href="https://radiodufutur.com/" aria-label="Découvrir Radio du Futur, le site à l'origine de l'Atlas">Un projet de Radio du Futur ↗</a>
+          </div>
           <SiteNav />
         </div>
       </header>

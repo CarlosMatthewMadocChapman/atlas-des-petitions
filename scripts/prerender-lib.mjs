@@ -168,11 +168,11 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar">${wordmark(ctx)}<nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a></nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a></nav></div></header>
     <main class="main">
 ${body}
     </main>
-    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p class="muted">Données : Pétitions de l'Assemblée nationale, via <a href="${esc(m.dataset_page)}" rel="noopener">data.gouv.fr</a>, Licence Ouverte 2.0 · fichier du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions. Les soutiens sont ceux du fichier, pas un compteur en direct.</p></div></footer>
+    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p>Créé par <strong>Carlos Chapman</strong> pour <a href="https://radiodufutur.com/">Radio du Futur</a>. <a href="https://radiodufutur.com/projets/">Explorer les projets</a> · <a href="https://radiodufutur.com/participer/">Participer</a> · <a href="https://suiteadonner.nucom.fr/">Suite à donner — suivi indépendant des pétitions</a>.</p><p class="muted">Données : Pétitions de l'Assemblée nationale, via <a href="${esc(m.dataset_page)}" rel="noopener">data.gouv.fr</a>, Licence Ouverte 2.0 · fichier du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions. Les soutiens sont ceux du fichier, pas un compteur en direct.</p></div></footer>
   </body>
 </html>
 `;
@@ -242,6 +242,7 @@ export function renderPetition(ctx, p) {
             <a class="btn btn--ghost" href="${esc(urls.app(ctx, `/petition/${p.id}`))}">Explorer dans l'Atlas interactif</a>
           </div>
           <p class="petition__warning">L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel de l'Assemblée nationale.</p>
+          <p class="source-note">Pour consulter les éventuelles suites parlementaires, <a href="https://suiteadonner.nucom.fr/petition/${encodeURIComponent(p.id)}" target="_blank" rel="noopener noreferrer">retrouver cette pétition sur « Suite à donner »</a> (observatoire indépendant).</p>
         </header>
         <div class="petition__layout">
           <div class="petition__main">

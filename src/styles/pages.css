@@ -693,9 +693,11 @@
     gap: var(--s-2);
   }
 
+  /* Tout le menu reste visible sur téléphone : il passe à la ligne au lieu d'être coupé. */
   .nav {
-    margin-inline: calc(-1 * var(--gutter));
-    padding-inline: var(--gutter);
+    flex-wrap: wrap;
+    overflow-x: visible;
+    margin-inline: calc(-1 * var(--s-3));
   }
 
   .hero {
