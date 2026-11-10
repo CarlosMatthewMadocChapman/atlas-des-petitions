@@ -53,6 +53,8 @@ export function SkyLayer() {
     const dust = Array.from({ length: DUST }, (_, i) => ({ x: rand(i + 300), y: rand(i + 700), r: 0.4 + rand(i + 1100) * 0.9, w: (Math.PI * 2) / (40 + rand(i + 1500) * 80), p: rand(i + 1900) * 6.28 }));
     let links: { a: Slot; b: Slot; score: number }[] = [];
     let linkLight = 0;
+    let level = 0.32;
+    let targetLevel = 0.32;
 
     engine.current = {
       apply(scene) {
@@ -74,6 +76,7 @@ export function SkyLayer() {
           return a && b ? [{ a, b, score: l.score }] : [];
         });
         linkLight = 0;
+        targetLevel = scene.level;
       },
     };
 
@@ -114,10 +117,11 @@ export function SkyLayer() {
       }
       linkLight += (1 - linkLight) * glide * 0.6;
       night += ((isNight() ? 1 : 0) - night) * glide;
+      level += (targetLevel - level) * glide;
       ctx.clearRect(0, 0, width, height);
 
       for (const d of dust) {
-        ctx.fillStyle = `rgba(${mix(110, 214, night)},${mix(98, 224, night)},${mix(76, 245, night)},${(0.24 + 0.16 * Math.sin(t * d.w + d.p)).toFixed(3)})`;
+        ctx.fillStyle = `rgba(${mix(110, 214, night)},${mix(98, 224, night)},${mix(76, 245, night)},${((0.24 + 0.16 * Math.sin(t * d.w + d.p)) * (0.35 + 0.65 * level)).toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(d.x * width - px * 8, ((d.y * height - scroll * 0.02) % height + height) % height - py * 8, d.r, 0, 6.29);
         ctx.fill();
@@ -131,7 +135,7 @@ export function SkyLayer() {
         const closeness = Math.max(0, 1 - Math.hypot(a.x - b.x, a.y - b.y) / near);
         const alpha = linkLight * Math.min(l.a.alpha, l.b.alpha) * (0.07 + 0.42 * closeness * closeness * (0.5 + 0.5 * l.score));
         if (alpha < 0.004) continue;
-        ctx.strokeStyle = `rgba(${mix(70, 226, night)},${mix(60, 214, night)},${mix(45, 190, night)},${alpha.toFixed(3)})`;
+        ctx.strokeStyle = `rgba(${mix(70, 226, night)},${mix(60, 214, night)},${mix(45, 190, night)},${(alpha * level).toFixed(3)})`;
         ctx.beginPath();
         ctx.moveTo(a.x, a.y);
         ctx.lineTo(b.x, b.y);
@@ -141,15 +145,15 @@ export function SkyLayer() {
       for (const s of slots) {
         if (s.alpha < 0.01) continue;
         const { x, y } = point(s, t, scroll);
-        const pulse = (0.82 + 0.18 * Math.sin(t * 0.35 + s.phase)) * s.alpha;
+        const pulse = (0.82 + 0.18 * Math.sin(t * 0.35 + s.phase)) * s.alpha * (0.3 + 0.7 * level);
         const tone = (i: number) => mix(mix(CLOSED_DAY[i], CLOSED[i], night), mix(OPEN_DAY[i], OPEN[i], night), s.warm);
         const r = tone(0);
         const g = tone(1);
         const b = tone(2);
-        const radius = 1.5 + 15 * s.size + 3 * s.focus;
+        const radius = 1.3 + 15 * s.size * (0.4 + 0.6 * level) + 3 * s.focus;
         const glow = radius * (5.5 + 3 * s.focus);
         const halo = ctx.createRadialGradient(x, y, 0, x, y, glow);
-        halo.addColorStop(0, `rgba(${r},${g},${b},${((0.42 + 0.25 * s.focus) * pulse).toFixed(3)})`);
+        halo.addColorStop(0, `rgba(${r},${g},${b},${((0.42 + 0.25 * s.focus) * pulse * level).toFixed(3)})`);
         halo.addColorStop(1, `rgba(${r},${g},${b},0)`);
         ctx.fillStyle = halo;
         ctx.beginPath();

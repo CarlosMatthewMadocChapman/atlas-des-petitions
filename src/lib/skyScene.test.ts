@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadCore, type Core } from './data';
-import { MAX_STARS, sceneFor } from './skyScene';
+import { COMMON_STARS, MAX_STARS, sceneFor } from './skyScene';
 
 const fetcher = async (name: string) => JSON.parse(readFileSync(resolve(import.meta.dirname, '../../public/data', name), 'utf8'));
 const core: Core = await loadCore(fetcher);
@@ -23,7 +23,8 @@ describe('scène du ciel', () => {
 
   it('garde le centre libre dans le ciel commun et ne dépasse jamais le nombre d\'astres', () => {
     const scene = sceneFor(core, '/');
-    expect(scene.stars).toHaveLength(MAX_STARS);
+    expect(scene.stars).toHaveLength(COMMON_STARS);
+    expect(scene.level).toBeLessThan(sceneFor(core, `/constellations/${core.dossiers[0].id}`).level);
     for (const star of scene.stars) expect(Math.hypot(star.x, star.y)).toBeGreaterThan(0.4);
     expect(scene.stars.find((s) => s.id === '3014')?.size).toBe(1);
   });
@@ -35,6 +36,6 @@ describe('scène du ciel', () => {
   });
 
   it('retombe sur le ciel commun pour une constellation inconnue', () => {
-    expect(sceneFor(core, '/constellations/inconnue').stars).toHaveLength(MAX_STARS);
+    expect(sceneFor(core, '/constellations/inconnue').stars).toHaveLength(COMMON_STARS);
   });
 });

@@ -22,9 +22,13 @@ export interface SkyScene {
   key: string;
   stars: SkyStar[];
   links: SkyLink[];
+  /** Intensité du ciel : discret sur les pages de lecture, pleine dans une constellation ou une pétition. */
+  level: number;
 }
 
 export const MAX_STARS = 64;
+export const COMMON_STARS = 28;
+const COMMON_LEVEL = 0.32;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 
 const hash = (text: string) => [...text].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);
@@ -40,12 +44,13 @@ function fromGraph(core: Core, key: string, graph: MapGraph, focus: string | nul
       return { id: n.id, x: n.x, y: n.y, size: Math.sqrt((petition?.votes ?? 0) / max), open: petition?.status === 'ouverte', focus: n.id === focus };
     }),
     links: graph.links.filter((l) => kept.has(l.a) && kept.has(l.b)).map((l) => ({ a: l.a, b: l.b, score: l.relation.score })),
+    level: 1,
   };
 }
 
 /** Le ciel commun : les pétitions les plus signées, en spirale, le centre laissé libre pour le texte. Chaque page le tourne un peu. */
 function commonSky(core: Core, key: string): SkyScene {
-  const top = [...core.petitions].sort((a, b) => (b.votes ?? -1) - (a.votes ?? -1)).slice(0, MAX_STARS);
+  const top = [...core.petitions].sort((a, b) => (b.votes ?? -1) - (a.votes ?? -1)).slice(0, COMMON_STARS);
   const max = Math.max(1, top[0]?.votes ?? 1);
   const turn = (hash(key) % 628) / 100;
   const kept = new Set(top.map((p) => p.id));
@@ -63,6 +68,7 @@ function commonSky(core: Core, key: string): SkyScene {
       return { id: p.id, x: Math.cos(angle) * reach, y: Math.sin(angle) * reach, size: Math.sqrt((p.votes ?? 0) / max), open: p.status === 'ouverte', focus: false };
     }),
     links,
+    level: COMMON_LEVEL,
   };
 }
 
