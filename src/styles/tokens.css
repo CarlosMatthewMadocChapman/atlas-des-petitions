@@ -72,6 +72,26 @@
   --container: 1240px;
 }
 
+:root[data-ciel='nuit'] {
+  color-scheme: dark;
+  --paper: #0a0f1e;
+  --paper-raised: rgb(19 26 46 / 0.72);
+  --paper-sunk: rgb(13 19 36 / 0.82);
+  --ink: #f1f3f9;
+  --ink-soft: #d2d8e6;
+  --mineral: #a9b3c9;
+  --rule: rgb(226 232 245 / 0.16);
+  --rule-strong: rgb(226 232 245 / 0.32);
+  --accent: #ff9a7a;
+  --accent-ink: #ffb8a0;
+  --accent-wash: rgb(255 154 122 / 0.18);
+  --rel-proche: #ff9a7a;
+  --rel-complementaire: #8fb2ee;
+  --rel-comparaison: #e6c15a;
+  --rel-thematique: #8d97ad;
+  --shadow-lift: 0 18px 44px -22px rgb(0 0 0 / 0.7);
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur: 0ms;

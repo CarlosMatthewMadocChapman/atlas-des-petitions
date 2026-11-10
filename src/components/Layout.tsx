@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { fileDate, formatDate } from '../lib/format';
+import { SkyLayer } from './SkyLayer';
+import { ThemeToggle } from './ThemeToggle';
 import { useCoreState } from '../state/DataContext';
 import { useCompare, useFavorites } from '../state/store';
 
@@ -41,6 +43,19 @@ function SiteNav() {
       </NavLink>
       <NavLink to="/methode">Méthode et données</NavLink>
     </nav>
+  );
+}
+
+/** Chaque page entre doucement : le ciel, lui, reste en place et glisse vers la scène suivante. */
+function RouteStage() {
+  const { pathname } = useLocation();
+  const entry = useRef(pathname);
+  // La toute première page s'affiche sans attendre : seules les navigations suivantes entrent en fondu.
+  if (entry.current !== pathname) entry.current = '';
+  return (
+    <div className={entry.current ? 'route' : 'route route--in'} key={pathname}>
+      <Outlet />
+    </div>
   );
 }
 
@@ -121,12 +136,14 @@ export function Layout() {
           <div className="header__identity">
             <Wordmark />
             <a className="header__origin" href="https://radiodufutur.com/" aria-label="Découvrir Radio du Futur, le site à l'origine de l'Atlas">Un projet de Radio du Futur ↗</a>
+            <ThemeToggle />
           </div>
           <SiteNav />
         </div>
       </header>
+      <SkyLayer />
       <main id="contenu" tabIndex={-1} className="main">
-        <Outlet />
+        <RouteStage />
       </main>
       <Footer />
       <RouteEffects />

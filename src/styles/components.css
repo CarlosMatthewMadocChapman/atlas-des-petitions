@@ -34,12 +34,12 @@
 .header__origin:hover {
   color: var(--accent-ink);
 }
-@media (max-width: 1000px) {
+@media (max-width: 1360px) {
   .header__bar {
     flex-wrap: wrap;
     row-gap: var(--s-2);
   }
-  .header__bar > .nav { width: 100%; }
+  .header__bar > .nav { width: 100%; flex-wrap: wrap; overflow-x: visible; margin-inline: calc(-1 * var(--s-3)); }
 }
 @media (max-width: 520px) {
   .header__origin { font-size: 0.74rem; }

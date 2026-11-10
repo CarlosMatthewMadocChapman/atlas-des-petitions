@@ -140,9 +140,10 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
   const ld = jsonLd ? `\n    <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>` : '';
   const m = ctx.meta;
   return `<!doctype html>
-<html lang="fr">
+<html lang="fr" data-ciel="nuit">
   <head>
     <meta charset="UTF-8" />
+    <script>try{if(localStorage.getItem('atlas-theme')==='clair')document.documentElement.removeAttribute('data-ciel')}catch(e){}</script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>${esc(fullTitle)}</title>
     <meta name="description" content="${esc(description)}" />
@@ -168,7 +169,7 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a></nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a></nav></div></header>
     <main class="main">
 ${body}
     </main>

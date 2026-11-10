@@ -73,7 +73,7 @@ export function ConstellationsIndex() {
       <div className="toolbar toolbar--wrap">
         <label className="select-inline">
           <span className="field-label">Mot du sujet</span>
-          <input type="search" value={q} placeholder="cannabis, retraite…" onChange={(e) => set({ q: e.target.value })} />
+          <input type="search" value={q} placeholder="CNews, Gaza, pesticides…" onChange={(e) => set({ q: e.target.value })} />
         </label>
         <label className="select-inline">
           <span className="field-label">Famille</span>
@@ -269,7 +269,7 @@ export function ConstellationDetail() {
           <div className="constellation__side">
             {selected ? (
               <>
-                <NodePanel core={core} id={selected} from={undefined} />
+                <NodePanel key={selected} core={core} id={selected} from={undefined} />
                 {(() => {
                   const g = groups.find((x) => x.rep === selected);
                   if (!g || g.members.length < 2) return null;

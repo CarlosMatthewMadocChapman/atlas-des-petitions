@@ -64,7 +64,7 @@ for (const [pkg, family, file] of fonts) {
   await copyFile(path.join(root, 'node_modules/@fontsource-variable', pkg, 'files', file), path.join(outDir, 'fonts', file));
   fontFaces += `@font-face{font-family:'${family}';font-style:normal;font-display:swap;font-weight:100 900;src:url(fonts/${file}) format('woff2-variations');}\n`;
 }
-await writeFile(path.join(outDir, 'static.css'), `${fontFaces}${css}\n.footer .container{display:grid;gap:var(--s-3)}.petition__layout,.hero__grid{align-items:start}\n`, 'utf8');
+await writeFile(path.join(outDir, 'static.css'), `${fontFaces}${css}\n.footer .container{display:grid;gap:var(--s-3)}.petition__layout,.hero__grid{align-items:start}\n:root[data-ciel='nuit'] body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:radial-gradient(1.4px 1.4px at 12% 18%,rgb(255 214 158/.8),transparent 70%),radial-gradient(1px 1px at 84% 12%,rgb(214 224 245/.7),transparent 70%),radial-gradient(1.6px 1.6px at 71% 42%,rgb(150 176 226/.7),transparent 70%),radial-gradient(1px 1px at 28% 66%,rgb(214 224 245/.6),transparent 70%),radial-gradient(1.5px 1.5px at 92% 76%,rgb(255 214 158/.7),transparent 70%),radial-gradient(1px 1px at 46% 88%,rgb(214 224 245/.6),transparent 70%),radial-gradient(1.2px 1.2px at 6% 82%,rgb(150 176 226/.6),transparent 70%)}\n`, 'utf8');
 
 // Liens explorables sur l'index de l'application : point d'entrée des robots vers les pages statiques.
 const indexFile = path.join(outDir, 'index.html');
