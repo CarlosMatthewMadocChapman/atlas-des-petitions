@@ -187,7 +187,7 @@ export function FilterPanel({ core, state, onChange, hide = [] }: Props) {
           type="button"
           className="btn btn--ghost filters__reset"
           disabled={count === 0 && !state.q}
-          onClick={() => onChange({ ...EMPTY_FILTERS, sort: 'recent' })}
+          onClick={() => onChange({ ...EMPTY_FILTERS })}
         >
           Réinitialiser les filtres et la recherche
         </button>

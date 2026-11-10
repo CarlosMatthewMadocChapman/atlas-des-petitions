@@ -20,6 +20,7 @@ const TYPE_BY_CODE = { p: 'proche', c: 'complementaire', o: 'comparaison', t: 't
 export const PAGE_SIZE = 100;
 const MAX_TEXT = 900;
 const MAX_NEIGHBORS = 6;
+const TOP_SIGNED_PAGES = 100;
 
 export const esc = (value) =>
   String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -45,7 +46,7 @@ const NUMBER = new Intl.NumberFormat('fr-FR');
 export function buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave = Infinity }) {
   const petitions = catalog.rows.map((r) => ({
     id: r[0], title: r[1], excerpt: r[2], published: r[3], votes: r[4], status: r[5],
-    commission: r[6] >= 0 ? catalog.commissions[r[6]] : null, legislature: r[7], themes: r[8], dossier: r[9],
+    commission: r[6] >= 0 ? catalog.commissions[r[6]] : null, legislature: r[7], themes: r[8], dossier: r[9], readOn: r[10] || null,
   }));
   const byId = new Map(petitions.map((p) => [p.id, p]));
   const adjacency = new Map();
@@ -79,6 +80,8 @@ export function priorityOrder(ctx) {
       order.push(id);
     }
   };
+  // Les plus signées ont toujours leur page, avant les grandes constellations.
+  [...ctx.petitions].sort((a, b) => (b.votes ?? -1) - (a.votes ?? -1) || Number(a.id) - Number(b.id)).slice(0, TOP_SIGNED_PAGES).forEach((p) => add(p.id));
   for (const d of [...ctx.dossiers].sort((a, b) => b.size - a.size || a.id.localeCompare(b.id))) d.members.forEach(add);
   [...ctx.petitions].sort((a, b) => (b.votes ?? -1) - (a.votes ?? -1) || Number(a.id) - Number(b.id)).forEach((p) => add(p.id));
   return order;
@@ -246,7 +249,7 @@ export function renderPetition(ctx, p) {
               <dl class="facts">
                 <div><dt>Statut</dt><dd><span class="badge badge--${esc(p.status)}">${esc(STATUS_LABEL[p.status] ?? p.status)}</span></dd></div>
                 <div><dt>Mise en ligne</dt><dd>${esc(formatDate(p.published))}</dd></div>
-                <div><dt>Soutiens</dt><dd><span class="num">${p.votes === null ? 'non renseigné' : NUMBER.format(p.votes)}</span> <span class="muted">au ${esc(formatDate(ctx.meta.source.file_date ?? ctx.meta.source.resource_last_modified))} — pas un compteur en direct</span></dd></div>
+                <div><dt>Soutiens</dt><dd><span class="num">${p.votes === null ? 'non renseigné' : NUMBER.format(p.votes)}</span> <span class="muted">${p.readOn ? `lu sur le site officiel le ${esc(formatDate(p.readOn))}, cette pétition manque au fichier public ; ` : ''}au ${esc(formatDate(ctx.meta.source.file_date ?? ctx.meta.source.resource_last_modified))} — pas un compteur en direct</span></dd></div>
                 <div><dt>Commission</dt><dd>${esc(p.commission ?? 'non renseignée')}</dd></div>
               </dl>
             </section>

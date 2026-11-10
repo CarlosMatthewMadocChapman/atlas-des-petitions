@@ -932,6 +932,20 @@ blockquote {
   overflow-wrap: anywhere;
 }
 
+.dossier-signal {
+  font-size: 0.95rem;
+  margin-top: var(--s-1);
+}
+
+.dossier-signal--wave {
+  border-left: 3px solid var(--rule-strong);
+  padding-left: var(--s-3);
+}
+
+.row__fact--note {
+  font-style: italic;
+}
+
 .audit h2,
 .audit h3 {
   margin-top: var(--s-6);

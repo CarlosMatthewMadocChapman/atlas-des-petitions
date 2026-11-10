@@ -12,6 +12,8 @@ export interface Petition {
   legislature: string;
   themes: string[];
   dossier: string;
+  /** Absente du fichier public : date à laquelle le compteur a été lu sur le site officiel. */
+  readOn?: string;
 }
 
 export interface PetitionDetail {
@@ -90,6 +92,7 @@ export interface Meta {
     semantic?: { model: string; revision: string; max_length: number; text_chars: number } | null;
   };
   public_count: { count: number; observed_on: string; note?: string } | null;
+  recovered?: { count: number; read_on: string } | null;
   warnings: string[];
 }
 

@@ -157,6 +157,17 @@ export function Method() {
             <p>Lorsque c'est possible, chaque rapprochement indique les mots communs qui l'expliquent, pour que vous puissiez le vérifier vous-même.</p>
           </section>
 
+          {meta.recovered && meta.recovered.count > 0 && (
+            <section id="absentes">
+              <h2>Les pétitions absentes du fichier public</h2>
+              <p>
+                Le fichier de data.gouv.fr omet des pétitions pourtant publiées, dont certaines parmi les plus signées. Le programme qui le fabrique classe comme inutilisé tout numéro
+                inférieur au plus grand numéro déjà vu : une pétition encore en modération à ce moment n'y entre plus jamais. L'Atlas relit donc ces numéros sur le site officiel :{' '}
+                <strong>{meta.recovered.count.toLocaleString('fr-FR')} pétitions</strong> ont été ajoutées ainsi le {formatDate(meta.recovered.read_on)}, et sont marquées comme telles.
+              </p>
+            </section>
+          )}
+
           <section id="signaler">
             <h2>Signaler une erreur</h2>
             <p>

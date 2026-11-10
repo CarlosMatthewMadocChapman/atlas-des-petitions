@@ -19,6 +19,7 @@ from .audit import build_audit, load_public_count, render_markdown
 from .concepts import groups_as_stems
 from .curation import apply_curation, load_curation
 from .ingest import Petition, load_csv
+from .recover import RECOVERED_FILE, load_recovered
 from .matching import (
     Thresholds, build_corpus, build_engine, candidate_edges, cluster_dossiers, cohesion, opposed_cues, shared_terms,
     spring_layout,
@@ -72,10 +73,19 @@ def dossier_label(engine, members: list[int], limit: int = 4) -> tuple[list[str]
     return terms, " · ".join(terms[:3])
 
 
+def with_recovered(petitions: list[Petition], path: Path | None) -> tuple[list[Petition], dict | None]:
+    """Ajoute au fichier les pétitions qu'il omet, dans l'ordre des numéros."""
+    if path is None:
+        return petitions, None
+    extra, recovered = load_recovered(path, {p.id for p in petitions})
+    return sorted(petitions + extra, key=lambda p: int(p.id)), recovered
+
+
 def build_catalog(
     raw_dir: Path, out_dir: Path, docs_dir: Path | None, curation_path: Path, public_count_path: Path,
     thresholds: Thresholds = Thresholds(),
     vectors: np.ndarray | None = None,
+    recovered_path: Path | None = None,
 ) -> dict:
     csv_path = raw_dir / "petitions.csv"
     source_path = raw_dir / "source.json"
@@ -86,6 +96,8 @@ def build_catalog(
     source.setdefault("file_date", source["resource_last_modified"])
     source.setdefault("file_date_origin", "metadonnee-data-gouv")
     ingest = load_csv(csv_path)
+    # Pétitions que le fichier omet, relues sur le site officiel (recover.py) : elles rejoignent le corpus, datées.
+    ingest.petitions, recovered = with_recovered(ingest.petitions, recovered_path)
     P: list[Petition] = ingest.petitions
     ids = [p.id for p in P]
     id_set = set(ids)
@@ -173,11 +185,11 @@ def build_catalog(
     commission_index = {c: i for i, c in enumerate(commissions)}
     catalog_rows = [
         [p.id, p.title, excerpt(p.description), p.published, p.votes, p.status,
-         commission_index.get(p.commission, -1), p.legislature or "", themes[p.id], dossier_of.get(p.id, "")]
+         commission_index.get(p.commission, -1), p.legislature or "", themes[p.id], dossier_of.get(p.id, ""), p.read_on or ""]
         for p in P
     ]
     catalog = {
-        "fields": ["id", "title", "excerpt", "published", "votes", "status", "commission", "legislature", "themes", "dossier"],
+        "fields": ["id", "title", "excerpt", "published", "votes", "status", "commission", "legislature", "themes", "dossier", "read_on"],
         "commissions": commissions, "rows": catalog_rows,
     }
 
@@ -238,6 +250,7 @@ def build_catalog(
             },
         },
         "public_count": public_count,
+        "recovered": recovered,
         "warnings": ingest.warnings,
     }
 
@@ -314,7 +327,7 @@ def _replace_directory(new_dir: Path, final_dir: Path) -> None:
 
 def compute_vectors(app_root: Path, embedder=None):
     """Vecteurs sémantiques de toutes les pétitions (cache dans pipeline/cache/embeddings.npz)."""
-    petitions = load_csv(app_root / "data" / "raw" / "petitions.csv").petitions
+    petitions, _ = with_recovered(load_csv(app_root / "data" / "raw" / "petitions.csv").petitions, app_root / RECOVERED_FILE)
     texts = [embedding_text(p.title, p.description) for p in petitions]
     try:
         return load_vectors(texts, app_root / "pipeline" / "cache" / "embeddings.npz", embedder)
@@ -335,6 +348,7 @@ def run_build(app_root: Path, force: bool = False, semantic: bool = True, embedd
     meta = build_catalog(
         raw_dir, tmp_dir, app_root / "docs", app_root / "pipeline" / "curation" / "relations.json",
         app_root / "pipeline" / "curation" / "public-count.json", vectors=vectors,
+        recovered_path=app_root / RECOVERED_FILE,
     )
     problems = validate_output(tmp_dir, None if force else final_dir)
     if problems:

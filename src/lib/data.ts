@@ -2,7 +2,7 @@ import type {
   Dossier, Meta, Neighbor, Petition, PetitionDetail, ProvenanceEntry, Relation, RelationType, Stats, Status, Theme,
 } from './types';
 
-type Row = [string, string, string, string | null, number | null, Status, number, string, string[], string];
+type Row = [string, string, string, string | null, number | null, Status, number, string, string[], string, string?];
 
 export interface RawCatalog {
   fields: string[];
@@ -78,7 +78,7 @@ export function buildAdjacency(relations: Relation[]): Map<string, Neighbor[]> {
 export function toPetitions(raw: RawCatalog): Petition[] {
   return raw.rows.map((r) => ({
     id: r[0], title: r[1], excerpt: r[2], published: r[3], votes: r[4], status: r[5],
-    commission: r[6] >= 0 ? raw.commissions[r[6]] : null, legislature: r[7], themes: r[8], dossier: r[9],
+    commission: r[6] >= 0 ? raw.commissions[r[6]] : null, legislature: r[7], themes: r[8], dossier: r[9], readOn: r[10] || undefined,
   }));
 }
 

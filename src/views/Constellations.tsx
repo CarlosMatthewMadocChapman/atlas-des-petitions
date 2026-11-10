@@ -14,10 +14,12 @@ import { dossierGraph } from '../lib/graph';
 import { useDocumentTitle } from '../lib/hooks';
 import { fold } from '../lib/text';
 import type { RelationType } from '../lib/types';
+import { DossierSignal } from '../components/DossierSignal';
+import { rankDossiers } from '../lib/ranking';
 import { useCore } from '../state/DataContext';
 
 const PER_PAGE = 12;
-const SORTS = { taille: 'Plus grandes', coherence: 'Plus cohérentes', recent: 'Plus récentes' } as const;
+const SORTS = { signatures: 'Plus signées', taille: 'Plus nombreuses', coherence: 'Plus cohérentes', recent: 'Plus récentes' } as const;
 type SortKey = keyof typeof SORTS;
 const REL_ORDER: RelationType[] = ['proche', 'comparaison', 'complementaire', 'thematique'];
 
@@ -27,7 +29,7 @@ export function ConstellationsIndex() {
   useDocumentTitle('Constellations');
   const theme = params.get('theme') ?? '';
   const q = params.get('q') ?? '';
-  const sort = (params.get('tri') as SortKey) in SORTS ? (params.get('tri') as SortKey) : 'taille';
+  const sort = (params.get('tri') as SortKey) in SORTS ? (params.get('tri') as SortKey) : 'signatures';
   const page = Math.max(1, Number(params.get('page')) || 1);
 
   const set = (patch: Record<string, string>) => {
@@ -49,7 +51,8 @@ export function ConstellationsIndex() {
       return needle.split(/\s+/).every((word) => haystack.includes(word));
     });
     items = [...items];
-    if (sort === 'taille') items.sort((a, b) => b.size - a.size || a.id.localeCompare(b.id));
+    if (sort === 'signatures') items = rankDossiers(items, core.byId);
+    else if (sort === 'taille') items.sort((a, b) => b.size - a.size || a.id.localeCompare(b.id));
     else if (sort === 'coherence') items.sort((a, b) => b.cohesion - a.cohesion);
     else items.sort((a, b) => (b.years[1] ?? '').localeCompare(a.years[1] ?? '') || b.size - a.size);
     return items;
@@ -105,6 +108,7 @@ export function ConstellationsIndex() {
                   <h2 className="dossier-row__title">
                     <Link to={`/constellations/${d.id}`}>{d.terms.slice(0, 3).join(' · ') || d.label}</Link>
                   </h2>
+                  <DossierSignal dossier={d} />
                   <p className="dossier-row__central">
                     <span className="muted">Pétition la plus centrale : </span>
                     {central?.title}

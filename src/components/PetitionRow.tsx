@@ -54,6 +54,7 @@ export function PetitionRow({ petition, hit, terms = [], onTheme, showExcerpt = 
           <StatusBadge status={petition.status} />
           <span className="row__fact num">{formatVotes(petition.votes)}</span>
           <span className="row__fact">{shortCommission(petition.commission)}</span>
+          {petition.readOn && <span className="row__fact row__fact--note" title="Cette pétition manque au fichier public. Son compteur a été lu sur le site officiel.">Absente du fichier public</span>}
         </div>
         {petition.themes.length > 0 && (
           <div className="row__themes">

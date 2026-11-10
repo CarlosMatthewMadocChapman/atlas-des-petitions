@@ -96,7 +96,8 @@ export function PetitionView() {
                 <dt>Soutiens</dt>
                 <dd>
                   <span className="num facts__big">{formatNumber(petition.votes)}</span>
-                  <span className="muted"> au {formatDate(fileDate(core.meta.source))} — pas un compteur en direct</span>
+                  <span className="muted"> au {formatDate(petition.readOn ?? fileDate(core.meta.source))} — pas un compteur en direct</span>
+                  {petition.readOn && <span className="muted"> Cette pétition manque au fichier public : son compteur a été lu sur le site officiel.</span>}
                 </dd>
               </div>
               <div><dt>Date limite de vote</dt><dd>{formatDate(text?.deadline ?? null)}</dd></div>

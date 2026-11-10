@@ -39,6 +39,8 @@ class Petition:
     legislature: str | None
     decision: str | None
     url: str
+    # Date de lecture sur le site officiel, pour une pétition absente du fichier public (voir recover.py).
+    read_on: str | None = None
 
 
 @dataclass

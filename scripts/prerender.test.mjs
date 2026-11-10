@@ -29,10 +29,10 @@ describe('pages statiques de l\'Atlas', () => {
     for (const t of ctx.taxonomy) expect(pages.has(urls.theme(ctx, t.id))).toBe(true);
   });
 
-  it('commence par les pétitions des plus grandes constellations et écarte les fiches trop pauvres', () => {
+  it('commence par les plus signées, puis les grandes constellations, et écarte les fiches trop pauvres', () => {
     const order = priorityOrder(ctx);
-    const biggest = [...ctx.dossiers].sort((a, b) => b.size - a.size)[0];
-    expect(order.slice(0, biggest.size)).toEqual(biggest.members);
+    const signed = [...ctx.petitions].sort((a, b) => (b.votes ?? -1) - (a.votes ?? -1)).slice(0, 100).map((p) => p.id);
+    expect(new Set(order.slice(0, 100))).toEqual(new Set(signed));
     for (const id of ctx.published) expect(isThin(ctx, ctx.byId.get(id))).toBe(false);
   });
 

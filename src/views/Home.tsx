@@ -2,9 +2,11 @@ import { useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { MiniConstellation } from '../components/ConstellationMap';
+import { DossierSignal } from '../components/DossierSignal';
 import { PetitionList, PetitionRow } from '../components/PetitionRow';
 import { SearchBox } from '../components/SearchBox';
 import { surprise } from '../lib/diversify';
+import { openMostSigned, rankDossiers } from '../lib/ranking';
 import { fileDate, formatDate, plural } from '../lib/format';
 import { useDocumentTitle } from '../lib/hooks';
 import { useCore } from '../state/DataContext';
@@ -22,7 +24,8 @@ export function Home() {
     [core],
   );
   const quiet = useMemo(() => surprise(core.petitions.filter((p) => p.votes !== null && p.votes < 50), day, 5), [core, day]);
-  const featured = useMemo(() => core.dossiers.filter((d) => d.size >= 8 && d.cohesion > 0.3).slice(0, 6), [core]);
+  const featured = useMemo(() => rankDossiers(core.dossiers.filter((d) => d.size >= 2), core.byId).slice(0, 6), [core]);
+  const mostSigned = useMemo(() => openMostSigned(core.petitions, 8), [core]);
   const hero = featured[0] ?? core.dossiers[0];
   const { counts, source } = core.meta;
   const themes = [...core.taxonomy].sort((a, b) => (core.stats.themes[b.id] ?? 0) - (core.stats.themes[a.id] ?? 0));
@@ -66,6 +69,17 @@ export function Home() {
       </section>
 
       <div className="container home">
+        <section aria-labelledby="signees" className="home__section">
+          <div className="home__head">
+            <h2 id="signees" className="section-title">Les plus signées, encore ouvertes</h2>
+            <Link to="/recherche" className="more">Toutes les pétitions <ArrowRight size={16} aria-hidden="true" /></Link>
+          </div>
+          <p className="muted">Ce qu'on peut encore signer, par nombre de signatures.</p>
+          <PetitionList label="Pétitions les plus signées encore ouvertes">
+            {mostSigned.map((p) => <PetitionRow key={p.id} petition={p} showExcerpt={false} />)}
+          </PetitionList>
+        </section>
+
         <section aria-labelledby="sujets" className="home__section">
           <div className="home__head">
             <h2 id="sujets" className="section-title">Sujets à explorer</h2>
@@ -97,6 +111,7 @@ export function Home() {
                 </Link>
                 <div className="dossier-row__body">
                   <h3 className="dossier-row__title"><Link to={`/constellations/${d.id}`}>{d.terms.slice(0, 3).join(' · ')}</Link></h3>
+                  <DossierSignal dossier={d} />
                   <p className="dossier-row__stats num muted">{plural(d.size, 'pétition', 'pétitions')} · {d.years[0]}–{d.years[1]}</p>
                 </div>
               </li>

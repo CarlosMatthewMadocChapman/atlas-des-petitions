@@ -27,7 +27,7 @@ et la mention est visible sur les fiches.
 
 ## Écart avec le catalogue public
 
-Le site officiel refuse les requêtes automatisées. Pour documenter l'écart entre le fichier et le catalogue ouvert,
+Pour documenter l'écart entre le fichier et le catalogue ouvert,
 relever à la main le nombre affiché, puis créer `public-count.json` :
 
 ```json

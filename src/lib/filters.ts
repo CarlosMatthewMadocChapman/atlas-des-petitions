@@ -3,7 +3,7 @@ import type { Petition, Status } from './types';
 import { shortCommission } from './format';
 import type { SearchHit } from './search';
 
-export type SortKey = 'pertinence' | 'recent' | 'ancien' | 'soutiens' | 'soutiens-asc' | 'hasard';
+export type SortKey = 'pertinence' | 'ouvertes' | 'recent' | 'ancien' | 'soutiens' | 'soutiens-asc' | 'hasard';
 
 export interface FilterState {
   q: string;
@@ -22,11 +22,11 @@ export interface FilterState {
 
 export const EMPTY_FILTERS: FilterState = {
   q: '', themes: [], statuses: [], commissions: [], since: '', until: '', minVotes: null, maxVotes: null,
-  dossier: '', sort: 'recent', seed: 1, page: 1,
+  dossier: '', sort: 'ouvertes', seed: 1, page: 1,
 };
 
 export const PAGE_SIZE = 20;
-const SORTS: SortKey[] = ['pertinence', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'];
+const SORTS: SortKey[] = ['pertinence', 'ouvertes', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'];
 const STATUSES: Status[] = ['ouverte', 'archivee', 'classee', 'expiree'];
 
 export function commissionSlug(name: string | null): string {
@@ -43,7 +43,7 @@ const int = (value: string | null): number | null => {
 export function parseFilters(params: URLSearchParams): FilterState {
   const q = (params.get('q') ?? '').trim();
   const requested = params.get('tri') as SortKey | null;
-  const sort = requested && SORTS.includes(requested) ? requested : q ? 'pertinence' : 'recent';
+  const sort = requested && SORTS.includes(requested) ? requested : q ? 'pertinence' : 'ouvertes';
   return {
     q,
     themes: list(params.get('theme')),
@@ -74,7 +74,7 @@ export function serializeFilters(state: FilterState): URLSearchParams {
   set('min', state.minVotes);
   set('max', state.maxVotes);
   set('dossier', state.dossier);
-  const defaultSort: SortKey = state.q ? 'pertinence' : 'recent';
+  const defaultSort: SortKey = state.q ? 'pertinence' : 'ouvertes';
   if (state.sort !== defaultSort) set('tri', state.sort);
   if (state.sort === 'hasard') set('graine', state.seed);
   if (state.page > 1) set('page', state.page);
@@ -118,9 +118,13 @@ export function mulberry32(seed: number): () => number {
 export function sortPetitions(items: Petition[], sort: SortKey, seed: number, scores?: Map<string, number>): Petition[] {
   const copy = [...items];
   const byDate = (a: Petition, b: Petition) => (b.published ?? '').localeCompare(a.published ?? '') || Number(b.id) - Number(a.id);
+  // À mots égaux, la pétition la plus signée passe devant : le poids reste modéré pour que le texte décide d'abord.
+  const weighted = (p: Petition) => (scores?.get(p.id) ?? 0) * (1 + 0.35 * Math.log10(1 + (p.votes ?? 0)));
   switch (sort) {
     case 'pertinence':
-      return scores ? copy.sort((a, b) => (scores.get(b.id) ?? 0) - (scores.get(a.id) ?? 0) || byDate(a, b)) : copy.sort(byDate);
+      return scores ? copy.sort((a, b) => weighted(b) - weighted(a) || byDate(a, b)) : copy.sort(byDate);
+    case 'ouvertes':
+      return copy.sort((a, b) => Number(b.status === 'ouverte') - Number(a.status === 'ouverte') || (b.votes ?? -1) - (a.votes ?? -1) || byDate(a, b));
     case 'ancien':
       return copy.sort((a, b) => -byDate(a, b));
     case 'soutiens':
@@ -161,7 +165,7 @@ export function runQuery(
   }
   const filtered = applyFilters(pool, state);
   const scores = hits ? new Map(hits.map((h) => [h.id, h.score])) : undefined;
-  return { items: sortPetitions(filtered, hits ? state.sort : state.sort === 'pertinence' ? 'recent' : state.sort, state.seed, scores), hits: hitMap };
+  return { items: sortPetitions(filtered, hits ? state.sort : state.sort === 'pertinence' ? 'ouvertes' : state.sort, state.seed, scores), hits: hitMap };
 }
 
 export function paginate<T>(items: T[], page: number, size = PAGE_SIZE): { slice: T[]; pages: number; page: number } {

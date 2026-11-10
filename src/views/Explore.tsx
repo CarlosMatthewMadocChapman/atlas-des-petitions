@@ -17,6 +17,7 @@ const SORT_LABEL: Record<SortKey, string> = {
   pertinence: 'Pertinence',
   recent: 'Plus récentes',
   ancien: 'Plus anciennes',
+  ouvertes: 'Encore à signer, les plus signées d’abord',
   soutiens: 'Plus de soutiens',
   'soutiens-asc': 'Moins de soutiens',
   hasard: 'Au hasard',
@@ -30,7 +31,7 @@ export function useFilterState() {
       const next = { ...parseFilters(params), ...patch };
       if (patch.q !== undefined && patch.q !== parseFilters(params).q) {
         next.page = 1;
-        if (!patch.sort) next.sort = patch.q ? 'pertinence' : next.sort === 'pertinence' ? 'recent' : next.sort;
+        if (!patch.sort) next.sort = patch.q ? 'pertinence' : next.sort === 'pertinence' ? 'ouvertes' : next.sort;
       }
       setParams(serializeFilters(next), { replace });
     },
@@ -55,7 +56,7 @@ export function Explore() {
   const expansion = useMemo(() => (state.q && search.engine ? search.engine.expansion(state.q).slice(0, 8) : []), [state.q, search.engine]);
 
   const paged = result ? paginate(result.items, state.page) : null;
-  const sorts = (state.q ? (['pertinence', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'] as SortKey[]) : (['recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'] as SortKey[]));
+  const sorts = (state.q ? (['pertinence', 'ouvertes', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'] as SortKey[]) : (['ouvertes', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'] as SortKey[]));
   const directCount = result ? [...result.hits.values()].filter((h) => h.kind === 'directe').length : 0;
   const viaCount = result ? result.items.filter((p) => result.hits.get(p.id)?.kind === 'voisine').length : 0;
 

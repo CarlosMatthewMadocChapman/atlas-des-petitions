@@ -188,13 +188,19 @@ def render_markdown(a: dict, meta: dict, theme_labels: dict[str, str]) -> str:
         )
     else:
         lines.append(
-            "**Non vérifié automatiquement.** Le site officiel n'expose pas de comptage lisible par un script "
-            "sans solliciter ses pages (la plateforme refuse les requêtes automatisées), et ce pipeline "
-            "s'interdit d'aspirer le site pour reconstituer un corpus déjà publié en open data. Pour documenter "
-            "l'écart, relever à la main le nombre affiché sur la page des initiatives puis le consigner dans "
+            "**Non relevé.** Pour documenter l'écart, consigner le nombre affiché sur la page des initiatives dans "
             "`pipeline/curation/public-count.json` (`{\"count\": N, \"observed_on\": \"AAAA-MM-JJ\", \"note\": \"…\"}`) ; "
             "ce rapport l'intégrera à la prochaine exécution."
         )
+    recovered = meta.get("recovered")
+    if recovered:
+        lines += [
+            "", "## Pétitions absentes du fichier public", "",
+            f"**{recovered['count']}** pétitions publiées sur le site officiel manquent au fichier de data.gouv.fr. "
+            f"Elles ont été relues sur le site le {recovered['read_on']} et ajoutées ici, marquées comme telles. "
+            "Le programme qui fabrique ce fichier classe comme inutilisé tout numéro inférieur au plus grand numéro déjà vu : "
+            "une pétition encore en modération à ce moment n'y entre plus jamais.",
+        ]
     lines += ["", "## Statuts", "", _table(["Statut", "Pétitions"], [[k, v] for k, v in sorted(a["status"].items(), key=lambda kv: -kv[1])]), ""]
     statuses = sorted(a["status"])
     lines += [

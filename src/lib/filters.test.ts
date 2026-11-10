@@ -35,7 +35,7 @@ describe('adresses partageables', () => {
     const state = parseFilters(new URLSearchParams('statut=bidon,ouverte&min=abc&tri=n-importe-quoi&page=-4'));
     expect(state.statuses).toEqual(['ouverte']);
     expect(state.minVotes).toBeNull();
-    expect(state.sort).toBe('recent');
+    expect(state.sort).toBe('ouvertes');
     expect(state.page).toBe(1);
   });
 
