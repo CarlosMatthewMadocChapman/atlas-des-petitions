@@ -105,6 +105,7 @@ export const urls = {
   theme: (ctx, id, page = 1) => (page > 1 ? `${ctx.base}t/${id}/${page}/` : `${ctx.base}t/${id}/`),
   app: (ctx, hash = '') => `${ctx.base}${hash ? `#${hash}` : ''}`,
   audit: (ctx) => `${ctx.base}audit/`,
+  recovered: (ctx) => `${ctx.base}donnees-retrouvees/`,
 };
 
 /** Regroupe les textes très proches d'une constellation (même logique que src/lib/condense.ts). */
@@ -169,11 +170,11 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a></nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a><a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a></nav></div></header>
     <main class="main">
 ${body}
     </main>
-    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p>Créé par <strong>Carlos Chapman</strong> pour <a href="https://radiodufutur.com/">Radio du Futur</a>. <a href="https://radiodufutur.com/projets/">Explorer les projets</a> · <a href="https://radiodufutur.com/participer/">Participer</a> · <a href="https://suiteadonner.nucom.fr/">Suite à donner — suivi indépendant des pétitions</a>.</p><p class="muted">Données : Pétitions de l'Assemblée nationale, via <a href="${esc(m.dataset_page)}" rel="noopener">data.gouv.fr</a>, Licence Ouverte 2.0 · fichier du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions. Les soutiens sont ceux du fichier, pas un compteur en direct.</p></div></footer>
+    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p>Créé par <strong>Carlos Chapman</strong> pour <a href="https://radiodufutur.com/">Radio du Futur</a>. <a href="https://radiodufutur.com/projets/">Explorer les projets</a> · <a href="https://radiodufutur.com/participer/">Participer</a> · <a href="https://suiteadonner.nucom.fr/">Suite à donner — suivi indépendant des pétitions</a>.</p><p class="muted">Données : Pétitions de l'Assemblée nationale, via <a href="${esc(m.dataset_page)}" rel="noopener">data.gouv.fr</a>, Licence Ouverte 2.0 · fichier du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions au catalogue${m.recovered?.count ? ` (dont ${NUMBER.format(m.recovered.count)} vérifiées le ${esc(formatDate(m.recovered.read_on))} sur le site officiel)` : ''}. <a href="${esc(urls.recovered(ctx))}">Comprendre le rattrapage</a> et les dates des soutiens.</p></div></footer>
   </body>
 </html>
 `;
@@ -413,11 +414,71 @@ ${auditMarkdownToHtml(markdown)}
   });
 }
 
+
+/** Récit daté du rattrapage, plus décompte courant issu des métadonnées versionnées. */
+export function renderRecovered(ctx) {
+  const m = ctx.meta;
+  const path = urls.recovered(ctx);
+  const count = m.recovered?.count ?? 0;
+  const sourceCount = m.counts.petitions - count;
+  const title = 'Pourquoi des pétitions manquaient au fichier public';
+  const description = "Comment l'Atlas des pétitions a identifié une omission dans les données ouvertes, retrouvé les fiches officielles et documenté leur provenance.";
+  const body = `<div class="container page method">
+    ${crumbs(ctx, [{ label: 'Pétitions retrouvées' }])}
+    <header class="page-head">
+      <p class="eyebrow">Enquête sur les données · depuis novembre 2026</p>
+      <h1>Pourquoi des pétitions manquaient au fichier public</h1>
+      <p class="lede">Une pétition peut être visible sur le site de l'Assemblée nationale et rester absente du fichier ouvert utilisé pour l'explorer. En construisant l'Atlas, nous avons découvert cette anomalie, remonté à sa cause probable et retrouvé les fiches manquantes.</p>
+    </header>
+    <div class="prose audit">
+      <section>
+        <h2>Ce que contient le catalogue actuel</h2>
+        <p><strong>${NUMBER.format(m.counts.petitions)} pétitions</strong> : ${NUMBER.format(sourceCount)} issues du fichier ouvert daté du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} et ${NUMBER.format(count)} fiches absentes de ce fichier, vérifiées directement sur le site officiel${m.recovered?.read_on ? ` le ${esc(formatDate(m.recovered.read_on))}` : ''}. Ces dates désignent des lectures différentes ; les soutiens ne sont pas actualisés en temps réel.</p>
+      </section>
+      <section>
+        <h2>La découverte</h2>
+        <p>Le 9 novembre 2026, en confrontant le fichier de données ouvertes aux pétitions visibles sur la plateforme officielle, l'Atlas a relevé que 42 des 300 premières pétitions du classement par soutiens n'étaient pas dans le CSV. La pétition n° 5820 dépassait le million de signatures lors du relevé du 10 novembre.</p>
+        <p>La recherche dans le code de fabrication du jeu de données a conduit à un <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement public sur GitHub (n° 839)</a> : le programme considère certains numéros absents comme définitivement inutilisés. Un numéro peut pourtant être attribué avant la publication effective d'une pétition. Si un numéro supérieur est publié entre-temps, cette pétition risque de ne plus entrer dans le fichier. Une correction a été proposée aux producteurs ; son intégration reste à vérifier.</p>
+      </section>
+      <section>
+        <h2>Le rattrapage : des sources et des dates distinctes</h2>
+        <ol>
+          <li>L'Atlas télécharge le fichier ouvert et conserve sa provenance, sa date et son empreinte numérique.</li>
+          <li>Il repère les numéros manquants dans sa plage d'identifiants, puis vérifie lesquels correspondent à une fiche réellement publiée sur le site officiel.</li>
+          <li>Pour les fiches retrouvées, il enregistre les données disponibles avec la date de consultation, sans recopier le nom des auteurs.</li>
+          <li>Il fusionne les fiches par numéro officiel. Si l'une apparaît ultérieurement dans le CSV, la version du fichier ouvert prime.</li>
+          <li>Le nouveau catalogue est contrôlé avant publication. Si une vérification échoue, la date ancienne est conservée : aucune mise à jour n'est supposée.</li>
+        </ol>
+        <p>Dans le relevé des 9 et 10 novembre, le fichier ouvert comportait <strong>4 269 pétitions</strong> et le rattrapage en a ajouté <strong>861</strong>, pour un total de <strong>5 130</strong>. Ces chiffres racontent cet instantané ; le total courant apparaît en haut de cette page.</p>
+      </section>
+      <section>
+        <h2>Une vérification indépendante</h2>
+        <p>L'observatoire <a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">« Suite à donner »</a>, qui suit le parcours parlementaire des pétitions, a examiné la même anomalie. Dans son relevé du 10 novembre, il signalait <strong>863 pétitions publiées absentes</strong>, correspondant à environ <strong>1,46 million de signatures</strong> selon ses comptages. Il a créé une <a href="https://suiteadonner.nucom.fr/absentes-du-fichier" target="_blank" rel="noopener noreferrer">page consacrée à ces absences</a>.</p>
+        <p>Les relevés indépendants comptent 863 pétitions et l'Atlas en a intégré 861. <strong>La différence de deux numéros reste à expliquer</strong> en comparant les identifiants et les conditions des relevés. Les signatures de pétitions différentes ne représentent pas nécessairement autant de personnes distinctes.</p>
+        <p>Les deux outils se prolongent : l'Atlas permet de trouver et rapprocher les propositions, puis chaque fiche renvoie à « Suite à donner » pour suivre les informations parlementaires disponibles.</p>
+      </section>
+      <section>
+        <h2>Ce que les chiffres disent, et leurs limites</h2>
+        <p>« Fichier du 9 novembre » désigne la date du CSV. « Fiche vérifiée le 10 novembre » désigne une consultation distincte sur le site officiel. Les dates de publication, les statuts et les soutiens peuvent évoluer. Certaines descriptions sont partielles et certaines informations officielles restent inconnues.</p>
+        <p>Une pétition absente du CSV n'est pas forcément une pétition cachée ou retirée. Le diagnostic porte sur la <strong>production du fichier ouvert</strong> et sur la capacité des outils citoyens à utiliser des données fiables. Le rattrapage ne remplace pas la correction souhaitable à la source.</p>
+      </section>
+      <section>
+        <h2>Vérifier et prolonger</h2>
+        <p><a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">Le signalement et sa proposition technique</a> · <a href="https://github.com/CarlosMatthewMadocChapman/atlas-des-petitions/blob/main/docs/RECUPERATION-PETITIONS.md" target="_blank" rel="noopener noreferrer">La procédure détaillée et les sources dans le dépôt GitHub public</a> · <a href="${esc(urls.audit(ctx))}">Le rapport d'audit du catalogue</a> · <a href="${esc(urls.app(ctx, '/methode'))}">La méthode de l'Atlas</a>.</p>
+      </section>
+    </div>
+  </div>`;
+  return shell(ctx, { title, description, path, depth: 1, body,
+    jsonLd: { '@context': 'https://schema.org', '@type': 'WebPage', name: title, description,
+      url: `${ctx.origin}${path}`, inLanguage: 'fr' } });
+}
+
 /** Toutes les pages : Map chemin -> HTML. */
 export function buildAll(ctx) {
   const pages = new Map();
   for (const id of ctx.published) pages.set(urls.petition(ctx, id), renderPetition(ctx, ctx.byId.get(id)));
   for (const d of ctx.dossiers) pages.set(urls.constellation(ctx, d.id), renderConstellation(ctx, d));
   for (const theme of ctx.taxonomy) for (const page of themePages(ctx, theme)) pages.set(page.path, page.html);
+  pages.set(urls.recovered(ctx), renderRecovered(ctx));
   return pages;
 }

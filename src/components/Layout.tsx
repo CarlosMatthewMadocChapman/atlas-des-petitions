@@ -105,7 +105,10 @@ function Footer() {
           </p>
           {meta && (
             <p className="muted">
-              Fichier du {formatDate(fileDate(meta.source))} · {meta.counts.petitions.toLocaleString('fr-FR')} pétitions · moteur {meta.algorithm.version}
+              Fichier du {formatDate(fileDate(meta.source))} · {meta.counts.petitions.toLocaleString('fr-FR')} pétitions au catalogue
+              {meta.recovered && meta.recovered.count > 0
+                ? ` (dont ${meta.recovered.count.toLocaleString('fr-FR')} relues sur le site officiel le ${formatDate(meta.recovered.read_on)})`
+                : ''} · moteur {meta.algorithm.version}
             </p>
           )}
         </div>
@@ -113,6 +116,7 @@ function Footer() {
           <h2 className="eyebrow">Repères</h2>
           <ul className="footer__links">
             <li><Link to="/methode">Méthode et données</Link></li>
+            <li><a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Pourquoi des pétitions manquaient au fichier</a></li>
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
             <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>
             <li><a href="https://radiodufutur.com/participer/">Participer à Radio du Futur ↗</a></li>

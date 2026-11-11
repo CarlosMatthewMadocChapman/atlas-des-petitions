@@ -43,6 +43,7 @@ export function Method() {
           L'Atlas des pétitions est une <strong>expérimentation indépendante</strong> créée par Carlos Chapman pour{' '}
           <a href="https://radiodufutur.com/">Radio du Futur</a>. Il n'est affilié ni à l'Assemblée nationale ni à aucune institution, ne permet pas de signer, et ne prend
           aucune position sur le fond des pétitions.
+          {' '}<a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Découvrir pourquoi certaines pétitions ont dû être retrouvées séparément.</a>
         </p>
       </header>
 
@@ -50,6 +51,7 @@ export function Method() {
         <nav className="method__toc" aria-label="Sommaire de la page">
           <ol>
             <li><a href="#sources">D'où viennent les informations</a></li>
+            <li><a href="#absentes">Comment les pétitions absentes ont été retrouvées</a></li>
             <li><a href="#autres-projets">Autres observatoires citoyens</a></li>
             <li><a href="#mesure">Ce qui est mesuré, ce qui reste inconnu</a></li>
             <li><a href="#classement">Comment les pétitions sont classées</a></li>
@@ -71,8 +73,9 @@ export function Method() {
               chaque lundi par ses producteurs. Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas.
             </p>
             <p>
-              Les titres, descriptions, dates, nombres de soutiens, statuts, commissions, décisions et liens officiels sont repris <strong>tels quels</strong>. Chaque fiche renvoie vers la
-              pétition sur <a href={meta.official_site} target="_blank" rel="noopener noreferrer">le site officiel</a>, seul endroit où l'on peut la signer.
+              Les titres, descriptions, dates, soutiens, statuts, commissions et décisions disponibles sont repris depuis leurs sources respectives, avec leur provenance.
+              Les fiches récupérées directement sur le site officiel peuvent contenir moins de champs que le CSV, notamment pour les décisions.
+              Chaque fiche renvoie vers la pétition sur <a href={meta.official_site} target="_blank" rel="noopener noreferrer">le site officiel</a>, seul endroit où l'on peut la signer.
             </p>
             <p className="note">
               Attention : la colonne « description » du fichier est issue d'une extraction de métadonnées. Elle peut être plus courte que le texte intégral de la pétition.
@@ -99,7 +102,7 @@ export function Method() {
           <section id="mesure">
             <h2>Ce qui est mesuré, ce qui reste inconnu</h2>
             <p>
-              <strong>Mesuré</strong> : le nombre de pétitions du catalogue ({total.toLocaleString('fr-FR')}), leurs dates de dépôt, le nombre de soutiens <em>à la date du fichier</em>, le statut et la commission.
+              <strong>Mesuré</strong> : le nombre de pétitions du catalogue ({total.toLocaleString('fr-FR')}), leurs dates de dépôt, leurs statuts et commissions. Les soutiens sont datés selon la provenance : date du CSV ou date de lecture de la fiche récupérée sur le site officiel.
             </p>
             <p>
               <strong>Inconnu ou non fiable</strong> : les soutiens ne sont pas un compteur en temps réel ; le fichier ne dit pas pourquoi une pétition est absente ; la législature est vide pour
@@ -107,7 +110,7 @@ export function Method() {
               décision ni aucune évolution de soutiens.
             </p>
             <p>
-              L'écart entre ce fichier et le catalogue public actuellement ouvert est documenté dans le{' '}
+              Le rapport d'audit distingue les fiches issues du fichier public et celles vérifiées séparément. Le comptage global visible sur le site de l'Assemblée est une autre mesure, à relever indépendamment dans le{' '}
               <a href={`${import.meta.env.BASE_URL}audit/`}>rapport d'audit</a>
               {meta.public_count
                 ? ` : ${meta.public_count.count.toLocaleString('fr-FR')} initiatives relevées sur le site officiel le ${formatDate(meta.public_count.observed_on)}.`
@@ -176,16 +179,38 @@ export function Method() {
             <p>Lorsque c'est possible, chaque rapprochement indique les mots communs qui l'expliquent, pour que vous puissiez le vérifier vous-même.</p>
           </section>
 
-          {meta.recovered && meta.recovered.count > 0 && (
-            <section id="absentes">
-              <h2>Les pétitions absentes du fichier public</h2>
-              <p>
-                Le fichier de data.gouv.fr omet des pétitions pourtant publiées, dont certaines parmi les plus signées. Le programme qui le fabrique classe comme inutilisé tout numéro
-                inférieur au plus grand numéro déjà vu : une pétition encore en modération à ce moment n'y entre plus jamais. L'Atlas relit donc ces numéros sur le site officiel :{' '}
-                <strong>{meta.recovered.count.toLocaleString('fr-FR')} pétitions</strong> ont été ajoutées ainsi le {formatDate(meta.recovered.read_on)}, et sont marquées comme telles.
+          <section id="absentes">
+            <h2>Pourquoi certaines pétitions ont dû être retrouvées séparément</h2>
+            <p>
+              En novembre 2026, la mise à jour de l'Atlas a révélé des pétitions publiées sur le site de l'Assemblée nationale
+              qui n'apparaissaient jamais dans le fichier ouvert. La cause probable a été détaillée dans un{' '}
+              <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement public sur GitHub</a> :
+              des numéros attribués avant leur publication peuvent être considérés comme « inutilisés » et exclus des lectures suivantes.
+              La pétition n° 5820, dépassant le million de soutiens lors du relevé du 10 novembre, en fournit un exemple.
+            </p>
+            <p>
+              L'Atlas vérifie désormais séparément les numéros absents du CSV sur la plateforme officielle. Les fiches réellement publiées
+              sont fusionnées par numéro, avec la date de consultation et la provenance ; si une fiche réapparaît dans le CSV, celui-ci reprend la priorité.
+              Le relevé de novembre comprenait 4 269 pétitions dans le fichier du 9 novembre et 861 fiches retrouvées le 10 novembre, soit 5 130 pétitions.
+            </p>
+            {meta.recovered && meta.recovered.count > 0 && (
+              <p className="note">
+                Pour le catalogue actuellement chargé : <strong>{(total - meta.recovered.count).toLocaleString('fr-FR')} pétitions du CSV</strong> et{' '}
+                <strong>{meta.recovered.count.toLocaleString('fr-FR')} fiches récupérées</strong>, vérifiées le {formatDate(meta.recovered.read_on)}.
+                Les signatures de ces fiches sont datées de leur lecture et peuvent différer de la date du fichier source ({formatDate(fileDate(meta.source))}).
               </p>
-            </section>
-          )}
+            )}
+            <p>
+              L'observatoire indépendant{' '}
+              <a href="https://suiteadonner.nucom.fr/absentes-du-fichier" target="_blank" rel="noopener noreferrer">« Suite à donner »</a> a effectué sa propre vérification
+              et recensé 863 pétitions absentes dans son relevé du 10 novembre. Les deux résultats diffèrent de deux fiches : une comparaison par numéro reste nécessaire.
+              Les soutiens de plusieurs pétitions ne sont pas additionnés pour estimer un nombre de citoyens distincts.
+            </p>
+            <p>
+              <a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Lire le récit complet, les étapes du rattrapage et les limites de la méthode</a>.
+              {' '}Le <a href={`${import.meta.env.BASE_URL}audit/`}>rapport d'audit</a> présente les chiffres du catalogue.
+            </p>
+          </section>
 
           <section id="signaler">
             <h2>Signaler une erreur</h2>

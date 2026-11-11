@@ -38,8 +38,15 @@ export function Home() {
         <p className="eyebrow eyebrow--accent">Pétitions de l'Assemblée nationale · fichier du {formatDate(fileDate(source))}</p>
         <h1 id="lead-titre">{(total / 1_000_000).toFixed(1).replace('.', ',')} millions de signatures. Voici ce qu'elles demandent.</h1>
         <p className="lead__text">
-          Sur {formatNumber(counts.petitions)} pétitions, <strong>cinquante portent {Math.round(share * 100)} % des signatures</strong>. Multiplier les pétitions n'agrandit rien.
+          Sur {formatNumber(counts.petitions)} pétitions, <strong>cinquante portent {Math.round(share * 100)} % des signatures relevées</strong>. Multiplier les pétitions n'agrandit rien.
         </p>
+        {core.meta.recovered && core.meta.recovered.count > 0 && (
+          <p className="source-note">
+            Catalogue enrichi : fichier du {formatDate(fileDate(source))}, complété par{' '}
+            <strong>{formatNumber(core.meta.recovered.count)} pétitions vérifiées le {formatDate(core.meta.recovered.read_on)}</strong> sur le site officiel.
+            {' '}<a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Pourquoi certaines pétitions manquaient au fichier ?</a>
+          </p>
+        )}
         <SearchBox value="" large autoFocus={false} onSubmit={(q) => navigate(q ? `/recherche?q=${encodeURIComponent(q)}` : '/recherche')} />
         <p className="hero__examples">
           <span className="muted">Essayez :</span>{' '}

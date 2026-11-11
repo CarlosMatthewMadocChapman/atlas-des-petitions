@@ -21,6 +21,14 @@ Données : [« Pétitions de l'Assemblée nationale »](https://www.data.gouv.fr
 (data.gouv.fr, jeu `6889cc10e79a25f17ed69acb`), **Licence Ouverte / Open Licence 2.0**. Rien n'est inventé : si le CSV est
 inaccessible, le pipeline échoue et conserve le dernier catalogue fiable.
 
+## Des pétitions publiées manquaient au fichier
+
+Le 10 novembre 2026, l'Atlas a documenté [une anomalie dans la fabrication du fichier ouvert](https://github.com/datagouv/datagouvfr_data_pipelines/issues/839) : des pétitions publiées, parfois très soutenues, n'apparaissaient jamais dans le CSV. Un programme de rattrapage a alors permis de relire les numéros absents sur la plateforme officielle. Sur le fichier du 9 novembre, le catalogue contient **4 269 pétitions issues du CSV et 861 fiches récupérées le 10 novembre**, soit **5 130 pétitions**. Les dates de consultation sont conservées, et le fichier officiel reprend la priorité lorsqu'une fiche y apparaît.
+
+**[Lire l'enquête, la procédure reproductible et ses limites](docs/RECUPERATION-PETITIONS.md)** · [Signalement GitHub](https://github.com/datagouv/datagouvfr_data_pipelines/issues/839) · [Relevé indépendant de « Suite à donner »](https://suiteadonner.nucom.fr/absentes-du-fichier).
+
+Ces chiffres décrivent le relevé des 9–10 novembre ; les totaux courants sont dans `public/data/meta.json`. L'écart de deux pétitions entre le rattrapage de l'Atlas et le relevé indépendant de « Suite à donner » reste à examiner.
+
 ## Lancer
 
 Prérequis : Node 20+ (testé avec 22) ; Python 3.10+ uniquement pour régénérer les données.
@@ -49,6 +57,7 @@ npm run preview
 ```bash
 npm run data:update      # télécharge le dernier CSV principal (métadonnées data.gouv.fr), valide, reconstruit
 npm run data:fetch       # téléchargement seul   → data/raw/ (ignoré par git)
+python pipeline/run.py recover   # lit les numéros absents sur le site officiel, datés séparément
 npm run data:build       # reconstruction seule  → public/data/ + docs/AUDIT-CATALOGUE.md
 python pipeline/run.py build --from-csv chemin/petitions.csv   # CSV déjà téléchargé (provenance « copie locale »)
 ```
@@ -126,8 +135,8 @@ une catégorisation automatique non officielle ; aucun compte, aucun suivi (favo
 
 ## Limites connues
 
-- Écart avec le catalogue public ouvert **non chiffré** : le site officiel refuse les requêtes automatisées. Procédure de
-  relevé manuel dans `pipeline/curation/README.md`.
+- Le rattrapage vérifie les numéros absents du CSV ; il ne garantit pas de retrouver toutes les pétitions existantes. Le nombre global d'initiatives affichées sur le site officiel n'est pas relevé automatiquement : procédure de relevé manuel dans `pipeline/curation/README.md`.
+- Les soutiens proviennent d'instantanés datés différemment selon la source (CSV ou fiche officielle relue) ; ne pas les présenter comme une mesure à une seule date.
 - La description du CSV peut être plus courte que le texte intégral.
 - Un seul instantané : pas d'historique d'évolution des soutiens (la provenance est conservée pour le permettre).
 - Le français est radicalisé de façon légère (pas de lemmatisation) ; la détection de divergences est volontairement

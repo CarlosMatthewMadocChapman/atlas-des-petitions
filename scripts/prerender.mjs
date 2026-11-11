@@ -43,7 +43,7 @@ const pages = buildAll(ctx);
 pages.set(urls.audit(ctx), renderAudit(ctx, await readFile(path.join(root, 'docs/AUDIT-CATALOGUE.md'), 'utf8')));
 
 // Pages périmées : on repart de zéro pour que les pétitions retirées du fichier disparaissent aussi.
-for (const dir of ['p', 'c', 't', 'audit']) await rm(path.join(outDir, dir), { recursive: true, force: true });
+for (const dir of ['p', 'c', 't', 'audit', 'donnees-retrouvees']) await rm(path.join(outDir, dir), { recursive: true, force: true });
 
 for (const [route, html] of pages) {
   const file = path.join(outDir, route.slice(base.length), 'index.html');

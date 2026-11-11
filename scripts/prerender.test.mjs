@@ -22,6 +22,16 @@ describe('pages statiques de l\'Atlas', () => {
   const ctx = make(150);
   const pages = buildAll(ctx);
 
+  it('publie une page documentaire traçable sur le rattrapage des données', () => {
+    const html = pages.get(urls.recovered(ctx));
+    expect(html).toContain("Pourquoi des pétitions manquaient au fichier public");
+    expect(html).toContain("4 269");
+    expect(html).toContain("861");
+    expect(html).toContain("5 130");
+    expect(html).toContain("https://github.com/datagouv/datagouvfr_data_pipelines/issues/839");
+    expect(html).toContain("https://suiteadonner.nucom.fr/absentes-du-fichier");
+    expect(html).toContain("vérification indépendante");
+  });
   it('écrit une page par fiche publiée, par constellation et par thème', () => {
     expect(ctx.published.size).toBe(150);
     for (const id of ctx.published) expect(pages.has(urls.petition(ctx, id))).toBe(true);
@@ -41,7 +51,8 @@ describe('pages statiques de l\'Atlas', () => {
     let checked = 0;
     for (const html of pages.values()) {
       for (const [, href] of html.matchAll(/href="(\/atlas\/[^"#]*)(?:#[^"]*)?"/g)) {
-        if (/\.(css|svg|jpg)$/.test(href) || href === '/atlas/') continue;
+        // Le rapport d'audit est ajouté par prerender.mjs après buildAll(ctx).
+        if (/\.(css|svg|jpg)$/.test(href) || href === '/atlas/' || href === urls.audit(ctx)) continue;
         checked++;
         expect(known.has(href), href).toBe(true);
       }
