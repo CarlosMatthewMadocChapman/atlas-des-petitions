@@ -28,7 +28,8 @@ export interface SkyScene {
 
 export const MAX_STARS = 64;
 export const COMMON_STARS = 28;
-const COMMON_LEVEL = 0.32;
+// Pages de lecture : fond uni. Le dessin n'apparaît que dans une constellation ou sur une pétition.
+const COMMON_LEVEL = 0;
 const GOLDEN = Math.PI * (3 - Math.sqrt(5));
 
 const hash = (text: string) => [...text].reduce((h, c) => (Math.imul(h, 31) + c.charCodeAt(0)) >>> 0, 7);

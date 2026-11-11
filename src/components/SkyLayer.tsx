@@ -11,7 +11,6 @@ const CLOSED = [150, 176, 226];
 const OPEN_DAY = [186, 104, 20];
 const CLOSED_DAY = [58, 92, 156];
 const mix = (a: number, b: number, k: number) => Math.round(a + (b - a) * k);
-const DUST = 180;
 
 interface Slot {
   id: string | null;
@@ -50,7 +49,6 @@ export function SkyLayer() {
       ax: 20 + rand(i + 80) * 40, ay: 16 + rand(i + 120) * 32,
       wx: (Math.PI * 2) / (90 + rand(i + 160) * 90), wy: (Math.PI * 2) / (110 + rand(i + 200) * 110), phase: rand(i + 240) * 6.28,
     }));
-    const dust = Array.from({ length: DUST }, (_, i) => ({ x: rand(i + 300), y: rand(i + 700), r: 0.4 + rand(i + 1100) * 0.9, w: (Math.PI * 2) / (40 + rand(i + 1500) * 80), p: rand(i + 1900) * 6.28 }));
     let links: { a: Slot; b: Slot; score: number }[] = [];
     let linkLight = 0;
     let level = 0.32;
@@ -120,13 +118,6 @@ export function SkyLayer() {
       level += (targetLevel - level) * glide;
       ctx.clearRect(0, 0, width, height);
 
-      for (const d of dust) {
-        ctx.fillStyle = `rgba(${mix(110, 214, night)},${mix(98, 224, night)},${mix(76, 245, night)},${((0.24 + 0.16 * Math.sin(t * d.w + d.p)) * (0.35 + 0.65 * level)).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.arc(d.x * width - px * 8, ((d.y * height - scroll * 0.02) % height + height) % height - py * 8, d.r, 0, 6.29);
-        ctx.fill();
-      }
-
       const near = Math.min(width, height) * 0.62;
       ctx.lineWidth = 1;
       for (const l of links) {
@@ -145,20 +136,13 @@ export function SkyLayer() {
       for (const s of slots) {
         if (s.alpha < 0.01) continue;
         const { x, y } = point(s, t, scroll);
-        const pulse = (0.82 + 0.18 * Math.sin(t * 0.35 + s.phase)) * s.alpha * (0.3 + 0.7 * level);
+        const pulse = (0.82 + 0.18 * Math.sin(t * 0.35 + s.phase)) * s.alpha * level;
         const tone = (i: number) => mix(mix(CLOSED_DAY[i], CLOSED[i], night), mix(OPEN_DAY[i], OPEN[i], night), s.warm);
         const r = tone(0);
         const g = tone(1);
         const b = tone(2);
-        const radius = 1.3 + 15 * s.size * (0.4 + 0.6 * level) + 3 * s.focus;
-        const glow = radius * (5.5 + 3 * s.focus);
-        const halo = ctx.createRadialGradient(x, y, 0, x, y, glow);
-        halo.addColorStop(0, `rgba(${r},${g},${b},${((0.42 + 0.25 * s.focus) * pulse * level).toFixed(3)})`);
-        halo.addColorStop(1, `rgba(${r},${g},${b},0)`);
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(x, y, glow, 0, 6.29);
-        ctx.fill();
+        // Des points nets, sans halo : un dessin, pas des taches.
+        const radius = 1.2 + 5 * s.size + 1.6 * s.focus;
         ctx.fillStyle = `rgba(${r},${g},${b},${((0.88 + 0.12 * s.focus) * pulse).toFixed(3)})`;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, 6.29);
