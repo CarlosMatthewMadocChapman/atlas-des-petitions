@@ -1,4 +1,4 @@
-"""Usage : python -m atlas_pipeline {fetch|recover|build|all} [--force] [--from-csv FICHIER]"""
+"""Usage : python -m atlas_pipeline {fetch|recover|history|build|all} [--force] [--from-csv FICHIER]"""
 
 from __future__ import annotations
 
@@ -12,14 +12,15 @@ from pathlib import Path
 
 from .build import BuildError, run_build
 from .fetch import FetchError, fetch_dataset
-from .recover import run_recover
+from .recover import RECOVERED_FILE, run_recover
+from .history import HISTORY_FILE, update as update_history
 
 APP_ROOT = Path(__file__).resolve().parents[2]
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="atlas_pipeline")
-    parser.add_argument("command", choices=["fetch", "recover", "build", "all"])
+    parser.add_argument("command", choices=["fetch", "recover", "history", "build", "all"])
     parser.add_argument("--force", action="store_true", help="ne pas comparer au catalogue précédent")
     parser.add_argument("--no-semantic", action="store_true", help="moteur lexical seul (sans la couche sémantique)")
     parser.add_argument("--from-csv", type=Path, help="utiliser un CSV local déjà téléchargé (provenance déclarée « locale »)")
@@ -48,6 +49,9 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "recover":
             result = run_recover(APP_ROOT)
             print(f"Rattrapage : {len(result['petitions'])} pétitions absentes du fichier, sur {result['checked']} numéros relus ({result['errors']} erreurs).")
+        if args.command == "history":
+            result = update_history(APP_ROOT / HISTORY_FILE, APP_ROOT / RECOVERED_FILE)
+            print(f"Historique : {result['dates']} relevés, {result['petitions']} pétitions suivies ; ajoutés : {', '.join(result['added']) or 'aucun'}.")
         if args.command in ("build", "all"):
             meta = run_build(APP_ROOT, force=args.force, semantic=not args.no_semantic)
             print("Catalogue construit :", meta["counts"])

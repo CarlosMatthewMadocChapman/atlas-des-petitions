@@ -20,6 +20,7 @@ from .concepts import groups_as_stems
 from .curation import apply_curation, load_curation
 from .ingest import Petition, load_csv
 from .recover import RECOVERED_FILE, load_recovered
+from .history import HISTORY_FILE, load as load_history, rising
 from .matching import (
     Thresholds, build_corpus, build_engine, candidate_edges, cluster_dossiers, cohesion, opposed_cues, shared_terms,
     spring_layout,
@@ -86,6 +87,7 @@ def build_catalog(
     thresholds: Thresholds = Thresholds(),
     vectors: np.ndarray | None = None,
     recovered_path: Path | None = None,
+    history_path: Path | None = None,
 ) -> dict:
     csv_path = raw_dir / "petitions.csv"
     source_path = raw_dir / "source.json"
@@ -223,12 +225,30 @@ def build_catalog(
     for shard, content in shards.items():
         _dump(details_dir / f"{shard}.json", content)
 
+    # Historique des signatures : une tranche par groupe de numéros, chargée seulement sur la fiche d'une pétition.
+    history = load_history(history_path) if history_path is not None and history_path.exists() else None
+    history_meta = None
+    rising_list: list[dict] = []
+    if history and history["dates"]:
+        tracked: dict[int, dict] = {}
+        for pid, row in history["series"].items():
+            if pid in id_set:
+                tracked.setdefault(int(pid) // DETAIL_SHARD, {})[pid] = row
+        for shard, rows in tracked.items():
+            _dump(out_dir / "history" / f"{shard}.json", {"dates": history["dates"], "sources": history["sources"], "s": rows})
+        rising_list = rising(history, id_set)
+        history_meta = {
+            "first": history["dates"][0], "last": history["dates"][-1], "readings": len(history["dates"]),
+            "tracked": sum(len(rows) for rows in tracked.values()), "min_votes": history["min_votes"],
+        }
+
     public_count = load_public_count(public_count_path)
     audit = build_audit(ingest, themes, edges, dossiers, public_count)
     stats = {
         "years": audit["years"], "year_status": audit["year_status"], "status": audit["status"],
         "vote_buckets": audit["vote_buckets"], "votes": audit["votes"],
         "commissions": audit["commissions"], "themes": audit["themes"], "relations": audit["relations"],
+        "rising": rising_list,
     }
     meta = {
         "schema": 1,
@@ -251,6 +271,7 @@ def build_catalog(
         },
         "public_count": public_count,
         "recovered": recovered,
+        "history": history_meta,
         "warnings": ingest.warnings,
     }
 
@@ -349,6 +370,7 @@ def run_build(app_root: Path, force: bool = False, semantic: bool = True, embedd
         raw_dir, tmp_dir, app_root / "docs", app_root / "pipeline" / "curation" / "relations.json",
         app_root / "pipeline" / "curation" / "public-count.json", vectors=vectors,
         recovered_path=app_root / RECOVERED_FILE,
+        history_path=app_root / HISTORY_FILE,
     )
     problems = validate_output(tmp_dir, None if force else final_dir)
     if problems:

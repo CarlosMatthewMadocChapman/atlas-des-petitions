@@ -4,6 +4,7 @@ import { CompareButton, FavoriteButton, OfficialLink, ShareButton } from '../com
 import { StatusBadge } from '../components/Badges';
 import { ConstellationMap, Legend } from '../components/ConstellationMap';
 import { NodePanel, RelationReason } from '../components/NodePanel';
+import { SignatureChart } from '../components/SignatureChart';
 import { EmptyState, Loading } from '../components/States';
 import { loadDetail } from '../lib/data';
 import { RELATION_HELP, RELATION_LABEL, STATUS_HELP, fileDate, formatDate, formatMonth, formatNumber, shortCommission } from '../lib/format';
@@ -117,6 +118,13 @@ export function PetitionView() {
               </div>
             )}
           </section>
+
+          {core.meta.history && (
+            <section aria-labelledby="evolution">
+              <h2 id="evolution" className="section-title">L'évolution des signatures</h2>
+              <SignatureChart id={petition.id} published={petition.published} />
+            </section>
+          )}
 
           <section aria-labelledby="texte">
             <h2 id="texte" className="section-title">Texte de la pétition</h2>

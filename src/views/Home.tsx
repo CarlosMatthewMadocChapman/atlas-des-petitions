@@ -26,6 +26,13 @@ export function Home() {
   const mostSigned = useMemo(() => openMostSigned(core.petitions, 7), [core]);
   const opposed = useMemo(() => duels(core), [core]);
   const week = useMemo(() => lastWeek(core), [core]);
+  const rising = useMemo(
+    () => (core.stats.rising ?? []).flatMap((r) => {
+      const petition = core.byId.get(r.id);
+      return petition ? [{ ...r, petition }] : [];
+    }).slice(0, 3),
+    [core],
+  );
   const { total, share } = useMemo(() => concentration(core), [core]);
   const { counts, source } = core.meta;
   const openCount = core.stats.status.ouverte ?? 0;
@@ -108,7 +115,19 @@ export function Home() {
             <h2 id="semaine" className="section-title">Cette semaine</h2>
             <p className="week__big"><strong className="num">{formatNumber(week.count)}</strong> {week.count > 1 ? 'nouvelles pétitions' : 'nouvelle pétition'} depuis le {formatDate(week.from)}.</p>
           </div>
-          {week.rising && (
+          {rising.length > 0 ? (
+            <div>
+              <p className="eyebrow">Ce qui monte</p>
+              <ol className="rising">
+                {rising.map(({ petition, gain, from, to }) => (
+                  <li key={petition.id}>
+                    <Link to={`/petition/${petition.id}`}>{petition.title}</Link>
+                    <span className="muted"> <strong className="num">+{formatNumber(gain)}</strong> du {formatDate(from)} au {formatDate(to)}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : week.rising && (
             <div>
               <p className="eyebrow">Ce qui décolle</p>
               <h3 className="week__title"><Link to={`/petition/${week.rising.id}`}>{week.rising.title}</Link></h3>

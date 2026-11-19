@@ -93,6 +93,8 @@ export interface Meta {
   };
   public_count: { count: number; observed_on: string; note?: string } | null;
   recovered?: { count: number; read_on: string } | null;
+  /** Historique des signatures (relevés hebdomadaires de data.gouv.fr et relevés de l'Atlas). */
+  history?: { first: string; last: string; readings: number; tracked: number; min_votes: number } | null;
   warnings: string[];
 }
 
@@ -101,6 +103,8 @@ export interface Stats {
   year_status: Record<string, Record<string, number>>;
   status: Record<string, number>;
   vote_buckets: { label: string; low: number; high: number | null; count: number }[];
+  /** Plus fortes hausses sur environ une semaine, d'un relevé à l'autre. */
+  rising?: { id: string; gain: number; from: string; to: string }[];
   votes: Record<string, number>;
   commissions: Record<string, number>;
   themes: Record<string, number>;
