@@ -38,7 +38,7 @@ export function toJson(items: Petition[], meta: Meta, filters: FilterState): str
         mise_a_jour_du_fichier: meta.source.file_date ?? meta.source.resource_last_modified,
         recuperation: meta.source.retrieved_at,
         licence: 'Licence Ouverte / Open Licence 2.0',
-        attribution: `Données : ${chamber.name}, via data.gouv.fr. Expérimentation indépendante, sans affiliation institutionnelle.`,
+        attribution: `Données : ${chamber.corpus}, via ${chamber.publisher}. Expérimentation indépendante, sans affiliation institutionnelle.`,
         version_moteur: meta.algorithm.version,
       },
       criteres: filters,

@@ -3,10 +3,15 @@ import { defineConfig } from 'vitest/config';
 
 // Chaque chambre a son espace à part, construit séparément (scripts/build-site.mjs) :
 // VITE_ATLAS_SOURCE choisit la chambre, ATLAS_PUBLIC_DIR le dossier des données (public/ ou senat/public/).
-const senat = process.env.VITE_ATLAS_SOURCE === 'senat';
-process.env.VITE_ATLAS_OF ??= senat ? 'du Sénat' : "de l'Assemblée nationale";
-process.env.VITE_ATLAS_TITLE ??= senat ? "L'Atlas des pétitions du Sénat" : "L'Atlas des pétitions";
-process.env.VITE_ATLAS_URL ??= senat ? 'https://radiodufutur.com/atlas/senat/' : 'https://radiodufutur.com/atlas/';
+const SPACES = {
+  an: { of: "de l'Assemblée nationale", title: "L'Atlas des pétitions", dir: '' },
+  senat: { of: 'du Sénat', title: "L'Atlas des pétitions du Sénat", dir: 'senat/' },
+  europe: { of: "de l'Initiative citoyenne européenne", title: "L'Atlas des initiatives européennes", dir: 'europe/' },
+};
+const space = SPACES[(process.env.VITE_ATLAS_SOURCE ?? 'an') as keyof typeof SPACES] ?? SPACES.an;
+process.env.VITE_ATLAS_OF ??= space.of;
+process.env.VITE_ATLAS_TITLE ??= space.title;
+process.env.VITE_ATLAS_URL ??= `https://radiodufutur.com/atlas/${space.dir}`;
 
 // Base relative : l'application fonctionne telle quelle dans un sous-répertoire
 // (GitHub Pages) comme à la racine, grâce à la navigation par fragment (#/).

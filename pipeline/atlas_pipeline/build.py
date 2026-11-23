@@ -285,6 +285,9 @@ def build_catalog(
     _dump(out_dir / "stats.json", stats)
     _dump(out_dir / "taxonomy.json", public_taxonomy())
     _dump(out_dir / "meta.json", meta)
+    # Informations propres à un registre (Europe : numéro, signatures par pays, réponse de la Commission).
+    if (raw_dir / "extra.json").exists():
+        shutil.copyfile(raw_dir / "extra.json", out_dir / "extra.json")
 
     entry = {
         "retrieved_at": source["retrieved_at"], "file_date": source["file_date"],

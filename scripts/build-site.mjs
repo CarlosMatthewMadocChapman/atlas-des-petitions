@@ -1,11 +1,12 @@
 // Construit la version publiée de l'Atlas, une chambre après l'autre, chacune dans son espace à part :
 //
-//   node scripts/build-site.mjs [an|senat|all]      (par défaut : all)
+//   node scripts/build-site.mjs [an|senat|europe|all]      (par défaut : all)
 //
 //   Assemblée nationale → ../public/atlas/         (données : public/data, audit : docs/)
 //   Sénat               → ../public/atlas/senat/   (données : senat/public/data, audit : senat/docs/)
+//   Europe (ICE)        → ../public/atlas/europe/  (données : europe/public/data, audit : europe/docs/)
 //
-// L'espace de l'Assemblée est vidé avant chaque build, sauf le dossier senat/ qui appartient à l'autre espace.
+// L'espace de l'Assemblée est vidé avant chaque build, sauf senat/ et europe/ qui appartiennent aux autres espaces.
 
 import { spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
@@ -16,8 +17,9 @@ const root = path.resolve(import.meta.dirname, '..');
 const site = path.resolve(root, '../public/atlas');
 
 const SPACES = {
-  an: { out: site, publicDir: 'public', sourceRoot: '.', base: '/atlas/', keep: ['senat'] },
+  an: { out: site, publicDir: 'public', sourceRoot: '.', base: '/atlas/', keep: ['senat', 'europe'] },
   senat: { out: path.join(site, 'senat'), publicDir: 'senat/public', sourceRoot: 'senat', base: '/atlas/senat/', keep: [] },
+  europe: { out: path.join(site, 'europe'), publicDir: 'europe/public', sourceRoot: 'europe', base: '/atlas/europe/', keep: [] },
 };
 
 function run(command, args, env) {

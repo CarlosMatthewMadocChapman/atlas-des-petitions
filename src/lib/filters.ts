@@ -27,7 +27,7 @@ export const EMPTY_FILTERS: FilterState = {
 
 export const PAGE_SIZE = 20;
 const SORTS: SortKey[] = ['pertinence', 'ouvertes', 'recent', 'ancien', 'soutiens', 'soutiens-asc', 'hasard'];
-const STATUSES: Status[] = ['ouverte', 'archivee', 'classee', 'expiree', 'seuil'];
+const STATUSES: Status[] = ['ouverte', 'archivee', 'classee', 'expiree', 'seuil', 'retiree', 'verification', 'soumise', 'repondue'];
 
 export function commissionSlug(name: string | null): string {
   return fold(shortCommission(name)).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

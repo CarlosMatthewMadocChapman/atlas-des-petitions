@@ -42,7 +42,8 @@ const details = (id) => {
 // Chaque chambre a sa vague : le Sénat commence plus bas pour ne pas alourdir le déploiement d'un coup.
 const waves = JSON.parse(await readFile(path.join(root, 'static-pages.json'), 'utf8'));
 const wave = chamberOf(meta).id === 'an' ? waves.petitions : (waves[chamberOf(meta).id] ?? waves.petitions);
-const ctx = buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave });
+const extra = await readJson('extra.json').catch(() => null);
+const ctx = buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave, extra });
 const pages = buildAll(ctx);
 pages.set(urls.audit(ctx), renderAudit(ctx, await readFile(path.join(sourceRoot, 'docs/AUDIT-CATALOGUE.md'), 'utf8')));
 

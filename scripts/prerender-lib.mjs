@@ -7,7 +7,7 @@
 //
 // Logique pure, sans dépendance : elle reçoit les données déjà chargées et renvoie du HTML.
 
-export const STATUS_LABEL = { ouverte: 'Ouverte', archivee: 'Archivée', classee: 'Classée', expiree: 'Expirée', seuil: 'Seuil atteint', inconnu: 'Statut inconnu' };
+export const STATUS_LABEL = { ouverte: 'Ouverte', archivee: 'Archivée', classee: 'Classée', expiree: 'Expirée', seuil: 'Seuil atteint', retiree: 'Retirée', verification: 'Signatures en vérification', soumise: 'Soumise à la Commission', repondue: 'Réponse de la Commission', inconnu: 'Statut inconnu' };
 export const RELATION_LABEL = {
   proche: 'Textes très proches',
   comparaison: 'Pistes de comparaison',
@@ -43,13 +43,31 @@ export const formatDate = (iso) => {
 const NUMBER = new Intl.NumberFormat('fr-FR');
 
 /** Données prêtes à l'emploi à partir des fichiers JSON de l'Atlas. */
+const LO = '<a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" rel="noopener">Licence Ouverte 2.0</a>';
 const CHAMBERS = {
-  an: { id: 'an', name: 'Assemblée nationale', of: "de l'Assemblée nationale", with: "l'Assemblée nationale" },
-  senat: { id: 'senat', name: 'Sénat', of: 'du Sénat', with: 'le Sénat' },
+  an: { id: 'an', name: 'Assemblée nationale', of: "de l'Assemblée nationale", with: "l'Assemblée nationale", dir: '',
+    corpus: "Pétitions de l'Assemblée nationale", label: "Pétitions de l'Assemblée", site: "L'Atlas des pétitions", em: 'des pétitions', tail: '',
+    publisher: 'data.gouv.fr', licence: LO, item: (p) => `Pétition n° ${p.id}` },
+  senat: { id: 'senat', name: 'Sénat', of: 'du Sénat', with: 'le Sénat', dir: 'senat/',
+    corpus: 'Pétitions du Sénat', label: 'Pétitions du Sénat', site: "L'Atlas des pétitions du Sénat", em: 'des pétitions', tail: ' du Sénat',
+    publisher: 'data.gouv.fr', licence: LO, item: (p) => `Pétition n° ${p.id}` },
+  europe: { id: 'europe', name: 'Initiative citoyenne européenne', of: "de l'Initiative citoyenne européenne",
+    with: "la Commission européenne ni aucune institution de l'Union", dir: 'europe/',
+    corpus: 'Initiatives citoyennes européennes', label: 'Initiatives européennes', site: "L'Atlas des initiatives européennes",
+    em: 'des initiatives', tail: ' européennes', publisher: "le registre de l'Initiative citoyenne européenne",
+    licence: '<a href="https://commission.europa.eu/legal-notice_fr" rel="noopener">CC BY 4.0</a> (contenus de la Commission)',
+    item: (p) => (p.regnum ? `Initiative ${p.regnum}` : 'Initiative citoyenne européenne') },
+};
+/** Liens vers les autres espaces de l'Atlas, depuis la base de celui-ci. */
+const otherSpaces = (ctx) => {
+  const self = chamberOf(ctx.meta);
+  const root = self.dir ? `${ctx.base}${'../'.repeat(self.dir.split('/').length - 1)}` : ctx.base;
+  return Object.values(CHAMBERS).filter((c) => c.id !== self.id)
+    .map((c) => `<a href="${esc(new URL(c.dir, `https://x${root}`).pathname)}">${esc(c.label)}</a>`).join('');
 };
 export const chamberOf = (meta) => CHAMBERS[meta?.chamber?.id] ?? CHAMBERS.an;
 
-export function buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave = Infinity }) {
+export function buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave = Infinity, extra = null }) {
   const petitions = catalog.rows.map((r) => ({
     id: r[0], title: r[1], excerpt: r[2], published: r[3], votes: r[4], status: r[5],
     commission: r[6] >= 0 ? catalog.commissions[r[6]] : null, legislature: r[7], themes: r[8], dossier: r[9], readOn: r[10] || null,
@@ -67,7 +85,7 @@ export function buildContext({ catalog, relations, dossiers, taxonomy, meta, det
   const themeById = new Map(taxonomy.map((t) => [t.id, t]));
   const dossierById = new Map(dossiers.map((d) => [d.id, d]));
   const base_ = base.endsWith('/') ? base : `${base}/`;
-  const ctx = { petitions, byId, adjacency, dossiers, dossierById, taxonomy, themeById, meta, details, origin, base: base_, edges, published: new Set() };
+  const ctx = { petitions, byId, adjacency, dossiers, dossierById, taxonomy, themeById, meta, details, origin, base: base_, edges, published: new Set(), extra };
   ctx.published = publishedSet(ctx, wave);
   return ctx;
 }
@@ -136,14 +154,14 @@ export function demandGroups(ctx, dossier) {
     .sort((a, b) => b.members.length - a.members.length || dossier.members.indexOf(a.rep) - dossier.members.indexOf(b.rep));
 }
 
-const wordmark = (ctx) => `<a href="${esc(ctx.base)}" class="wordmark" aria-label="L'Atlas des pétitions — accueil"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g stroke="currentColor" stroke-width="1.3" fill="none"><path d="M6 24 L15 9 L27 14 L21 27 Z"/><path d="M15 9 L21 27"/></g><circle cx="6" cy="24" r="2.6" fill="currentColor"/><circle cx="15" cy="9" r="2.6" fill="#c0361a"/><circle cx="27" cy="14" r="2.6" fill="currentColor"/><circle cx="21" cy="27" r="2.6" fill="currentColor"/></svg><span>L'Atlas <em>des pétitions</em>${chamberOf(ctx.meta).id === 'senat' ? ' du Sénat' : ''}</span></a>`;
+const wordmark = (ctx) => `<a href="${esc(ctx.base)}" class="wordmark" aria-label="L'Atlas des pétitions — accueil"><svg width="34" height="34" viewBox="0 0 34 34" aria-hidden="true"><g stroke="currentColor" stroke-width="1.3" fill="none"><path d="M6 24 L15 9 L27 14 L21 27 Z"/><path d="M15 9 L21 27"/></g><circle cx="6" cy="24" r="2.6" fill="currentColor"/><circle cx="15" cy="9" r="2.6" fill="#c0361a"/><circle cx="27" cy="14" r="2.6" fill="currentColor"/><circle cx="21" cy="27" r="2.6" fill="currentColor"/></svg><span>L'Atlas <em>${chamberOf(ctx.meta).em}</em>${chamberOf(ctx.meta).tail}</span></a>`;
 
 function shell(ctx, { title, description, path, robots = 'index,follow', body, jsonLd, depth }) {
   const canonical = `${ctx.origin}${path}`;
   const image = `${ctx.origin}${ctx.base}partage-atlas.jpg`;
   const alt = 'Constellation de pétitions reliées entre elles, à côté du titre « Des milliers de propositions citoyennes, enfin reliées ».';
   const css = `${'../'.repeat(depth)}static.css`;
-  const fullTitle = `${title} · L'Atlas des pétitions${chamberOf(ctx.meta).id === 'an' ? '' : ' du Sénat'}`;
+  const fullTitle = `${title} · ${chamberOf(ctx.meta).site}`;
   const ld = jsonLd ? `\n    <script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>` : '';
   const m = ctx.meta;
   return `<!doctype html>
@@ -176,11 +194,11 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a><a href="${esc(ctx.base)}senat/">Pétitions du Sénat</a>` : `<a href="${esc(ctx.base)}../">Pétitions de l'Assemblée</a>`}</nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a>` : ''}${otherSpaces(ctx)}</nav></div></header>
     <main class="main">
 ${body}
     </main>
-    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec ${chamberOf(m).with}. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p>Créé par <strong>Carlos Chapman</strong> pour <a href="https://radiodufutur.com/">Radio du Futur</a>. <a href="https://radiodufutur.com/projets/">Explorer les projets</a> · <a href="https://radiodufutur.com/participer/">Participer</a>${chamberOf(m).id === 'an' ? ' · <a href="https://suiteadonner.nucom.fr/">Suite à donner — suivi indépendant des pétitions</a>' : ''}.</p><p class="muted">Données : Pétitions ${chamberOf(m).of}, via <a href="${esc(m.dataset_page)}" rel="noopener">data.gouv.fr</a>, Licence Ouverte 2.0 · fichier du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions au catalogue${m.recovered?.count ? ` (dont ${NUMBER.format(m.recovered.count)} vérifiées le ${esc(formatDate(m.recovered.read_on))} sur le site officiel)` : ''}.${chamberOf(m).id === 'an' ? ` <a href="${esc(urls.recovered(ctx))}">Comprendre le rattrapage</a> et les dates des soutiens.` : ''}</p></div></footer>
+    <footer class="footer"><div class="container"><p>Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec ${chamberOf(m).with}. On ne peut pas signer ici : chaque fiche renvoie vers la pétition officielle.</p><p>Créé par <strong>Carlos Chapman</strong> pour <a href="https://radiodufutur.com/">Radio du Futur</a>. <a href="https://radiodufutur.com/projets/">Explorer les projets</a> · <a href="https://radiodufutur.com/participer/">Participer</a>${chamberOf(m).id === 'an' ? ' · <a href="https://suiteadonner.nucom.fr/">Suite à donner — suivi indépendant des pétitions</a>' : ''}.</p><p class="muted">Données : ${chamberOf(m).corpus}, via <a href="${esc(m.dataset_page)}" rel="noopener">${chamberOf(m).publisher}</a>, ${chamberOf(m).licence} · ${chamberOf(m).id === 'europe' ? 'registre lu le' : 'fichier du'} ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} · ${NUMBER.format(m.counts.petitions)} pétitions au catalogue${m.recovered?.count ? ` (dont ${NUMBER.format(m.recovered.count)} vérifiées le ${esc(formatDate(m.recovered.read_on))} sur le site officiel)` : ''}.${chamberOf(m).id === 'an' ? ` <a href="${esc(urls.recovered(ctx))}">Comprendre le rattrapage</a> et les dates des soutiens.` : ''}</p></div></footer>
   </body>
 </html>
 `;
@@ -201,7 +219,7 @@ function crumbs(ctx, items) {
 }
 
 function breadcrumbLd(ctx, items) {
-  const all = [{ label: "L'Atlas des pétitions", href: ctx.base }, ...items];
+  const all = [{ label: chamberOf(ctx.meta).site, href: ctx.base }, ...items];
   return {
     '@type': 'BreadcrumbList',
     itemListElement: all.map((item, index) => ({
@@ -224,7 +242,7 @@ export function renderPetition(ctx, p) {
   const trail = [
     ...(theme ? [{ label: theme.label, href: urls.theme(ctx, theme.id) }] : []),
     ...(dossier ? [{ label: dossier.terms.slice(0, 2).join(' · '), href: urls.constellation(ctx, dossier.id) }] : []),
-    { label: `Pétition n° ${p.id}` },
+    { label: chamberOf(ctx.meta).item({ ...p, regnum: ctx.extra?.[p.id]?.regnum }) },
   ];
   const path = urls.petition(ctx, p.id);
   const neighbors = (ctx.adjacency.get(p.id) ?? []).filter((n) => n.type !== 'thematique');
@@ -243,10 +261,10 @@ export function renderPetition(ctx, p) {
   const body = `      <article class="container page petition">
         ${crumbs(ctx, trail)}
         <header class="petition__head">
-          <p class="eyebrow num">Pétition n° ${esc(p.id)}</p>
+          <p class="eyebrow num">${esc(chamberOf(ctx.meta).item({ ...p, regnum: ctx.extra?.[p.id]?.regnum }))}</p>
           <h1>${esc(p.title)}</h1>
           <div class="petition__cta">
-            <a class="btn btn--primary" href="${esc(officialUrl(ctx, p))}" target="_blank" rel="noopener noreferrer">Voir la pétition sur le site officiel ↗</a>
+            <a class="btn btn--primary" href="${esc(officialUrl(ctx, p))}" target="_blank" rel="noopener noreferrer">${chamberOf(ctx.meta).id === 'europe' ? "Voir l'initiative" : 'Voir la pétition'} sur le site officiel ↗</a>
             <a class="btn btn--ghost" href="${esc(urls.app(ctx, `/petition/${p.id}`))}">Explorer dans l'Atlas interactif</a>
           </div>
           <p class="petition__warning">L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel ${chamberOf(ctx.meta).of}.</p>

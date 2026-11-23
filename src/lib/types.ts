@@ -1,4 +1,4 @@
-export type Status = 'ouverte' | 'archivee' | 'classee' | 'expiree' | 'seuil' | 'inconnu';
+export type Status = 'ouverte' | 'archivee' | 'classee' | 'expiree' | 'seuil' | 'retiree' | 'verification' | 'soumise' | 'repondue' | 'inconnu';
 export type RelationType = 'proche' | 'complementaire' | 'comparaison' | 'thematique';
 
 export interface Petition {

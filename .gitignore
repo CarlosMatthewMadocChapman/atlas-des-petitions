@@ -9,3 +9,6 @@ __pycache__/
 senat/data/raw/
 senat/data/build-tmp/
 senat/public/data.previous/
+europe/data/raw/
+europe/data/build-tmp/
+europe/public/data.previous/

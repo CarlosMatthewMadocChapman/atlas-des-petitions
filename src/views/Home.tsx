@@ -14,9 +14,7 @@ import { openMostSigned, rankDossiers } from '../lib/ranking';
 import { concentration, duels, lastWeek } from '../lib/synthesis';
 import { useCore } from '../state/DataContext';
 
-const EXAMPLES = chamber.id === 'an'
-  ? ['CNews', 'loi Duplomb', 'Gaza', 'destitution', 'armes mutilantes', 'chasse à courre', 'Nutri-Score']
-  : ['retraites', 'handicap', 'AAH', 'chasse', 'vaccins', 'loi Duplomb', 'animaux'];
+const EXAMPLES = chamber.examples;
 
 export function Home() {
   const core = useCore();
@@ -36,7 +34,9 @@ export function Home() {
     }).slice(0, 3),
     [core],
   );
-  const { total, share } = useMemo(() => concentration(core), [core]);
+  // Sur un petit corpus (Europe : 136 initiatives), cinquante couvriraient presque tout : on compte les dix premières.
+  const top = core.meta.counts.petitions >= 1000 ? 50 : 10;
+  const { total, share } = useMemo(() => concentration(core, top), [core, top]);
   const { counts, source } = core.meta;
   const openCount = core.stats.status.ouverte ?? 0;
   const highest = mostSigned[0]?.votes ?? 1;
@@ -45,10 +45,10 @@ export function Home() {
   return (
     <>
       <section className="lead container" aria-labelledby="lead-titre">
-        <p className="eyebrow eyebrow--accent">Pétitions {chamber.of} · fichier du {formatDate(fileDate(source))}</p>
+        <p className="eyebrow eyebrow--accent">{chamber.corpus} · {chamber.id === 'europe' ? 'registre lu le' : 'fichier du'} {formatDate(fileDate(source))}</p>
         <h1 id="lead-titre">{total >= 2_000_000 ? `${(total / 1_000_000).toFixed(1).replace('.', ',')} millions de signatures` : `${formatNumber(total)} signatures`}. Voici ce qu'elles demandent.</h1>
         <p className="lead__text">
-          Sur {formatNumber(counts.petitions)} pétitions, <strong>cinquante portent {Math.round(share * 100)} % des signatures relevées</strong>. Multiplier les pétitions n'agrandit rien.
+          Sur {formatNumber(counts.petitions)} {chamber.id === 'europe' ? 'initiatives' : 'pétitions'}, <strong>{top === 50 ? 'cinquante' : 'dix'} portent {Math.round(share * 100)} % des signatures relevées</strong>. Multiplier les pétitions n'agrandit rien.
         </p>
         {core.meta.recovered && core.meta.recovered.count > 0 && (
           <p className="source-note">

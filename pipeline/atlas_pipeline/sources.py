@@ -19,10 +19,11 @@ class Source:
     dataset_title: str
     dataset_page: str
     official_site: str
-    snapshots: str  # dossier des fichiers hebdomadaires archivés par data.gouv.fr
+    snapshots: str | None  # dossier des fichiers hebdomadaires archivés par data.gouv.fr ; None : relevés de l'Atlas seulement
     subdir: str  # "" = racine de l'application
     recover: bool  # relire sur le site officiel les numéros absents du fichier
     thresholds: tuple[int, ...]  # seuils officiels de signatures, tracés sur les courbes
+    register: bool = False  # données lues dans un registre (interface publique) plutôt que dans un CSV
 
     @property
     def dataset_api(self) -> str:
@@ -68,4 +69,20 @@ SENAT = Source(
     thresholds=(100_000,),  # en six mois : la conférence des présidents peut l'inscrire à l'ordre du jour
 )
 
-SOURCES = {s.id: s for s in (AN, SENAT)}
+EUROPE = Source(
+    id="europe",
+    name="Initiative citoyenne européenne",
+    of="de l'Initiative citoyenne européenne",
+    dataset_id="registre-ice",
+    dataset_title="Registre de l'Initiative citoyenne européenne",
+    dataset_page="https://citizens-initiative.europa.eu/find-initiative_fr",
+    official_site="https://citizens-initiative.europa.eu/initiatives/details",
+    snapshots=None,
+    subdir="europe",
+    recover=False,
+    # Un million de signatures, avec un minimum atteint dans au moins sept pays de l'Union.
+    thresholds=(1_000_000,),
+    register=True,
+)
+
+SOURCES = {s.id: s for s in (AN, SENAT, EUROPE)}

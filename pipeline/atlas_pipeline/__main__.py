@@ -15,6 +15,7 @@ from .fetch import FetchError, fetch_dataset
 from .recover import RECOVERED_FILE, run_recover
 from .history import HISTORY_FILE, update as update_history
 from .sources import SOURCES
+from .eci import fetch_register
 
 APP_ROOT = Path(__file__).resolve().parents[2]
 
@@ -25,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--force", action="store_true", help="ne pas comparer au catalogue précédent")
     parser.add_argument("--no-semantic", action="store_true", help="moteur lexical seul (sans la couche sémantique)")
     parser.add_argument("--from-csv", type=Path, help="utiliser un CSV local déjà téléchargé (provenance déclarée « locale »)")
-    parser.add_argument("--source", choices=sorted(SOURCES), default="an", help="chambre : an (Assemblée nationale) ou senat")
+    parser.add_argument("--source", choices=sorted(SOURCES), default="an", help="source : an (Assemblée nationale), senat ou europe (Initiative citoyenne européenne)")
     args = parser.parse_args(argv)
     source = SOURCES[args.source]
     root = source.root(APP_ROOT)
@@ -48,7 +49,7 @@ def main(argv: list[str] | None = None) -> int:
                     "retrieved_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 }, ensure_ascii=False, indent=2), encoding="utf-8")
             else:
-                info = fetch_dataset(raw, api_url=source.dataset_api)
+                info = fetch_register(raw) if source.register else fetch_dataset(raw, api_url=source.dataset_api)
                 print(f"Téléchargé : {info['resource_title']} ({info['bytes']} octets, {info['sha256'][:12]}…)")
         if args.command == "recover" and not source.recover:
             print(f"Rattrapage inutile pour {source.name} : le fichier relit tous les numéros.")
@@ -56,7 +57,8 @@ def main(argv: list[str] | None = None) -> int:
             result = run_recover(root)
             print(f"Rattrapage : {len(result['petitions'])} pétitions absentes du fichier, sur {result['checked']} numéros relus ({result['errors']} erreurs).")
         if args.command == "history":
-            result = update_history(root / HISTORY_FILE, root / RECOVERED_FILE, snapshots=source.snapshots)
+            result = update_history(root / HISTORY_FILE, root / RECOVERED_FILE, snapshots=source.snapshots,
+                                    current=raw if source.snapshots is None else None)
             print(f"Historique : {result['dates']} relevés, {result['petitions']} pétitions suivies ; ajoutés : {', '.join(result['added']) or 'aucun'}.")
         if args.command in ("build", "all"):
             meta = run_build(root, force=args.force, semantic=not args.no_semantic, chamber=source)

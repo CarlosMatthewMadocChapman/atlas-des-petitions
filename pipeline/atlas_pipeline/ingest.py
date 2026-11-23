@@ -19,9 +19,15 @@ REQUIRED_COLUMNS = ("identifiant", "titre", "description", "date_publication", "
 OPTIONAL_COLUMNS = ("date_limite_vote", "commission", "legislature", "decision_commission")
 # Colonnes connues mais non utilisées : « type » du Sénat (texte législatif ou mission de contrôle).
 KNOWN_EXTRA_COLUMNS = ("type",)
-KNOWN_STATUSES = ("ouverte", "archivee", "classee", "expiree", "seuil")
+KNOWN_STATUSES = ("ouverte", "archivee", "classee", "expiree", "seuil", "retiree", "verification", "soumise", "repondue")
 # Statuts du Sénat ramenés au vocabulaire commun : « seuil non atteint » = délai écoulé sans le seuil requis.
-STATUS_ALIASES = {"seuil non atteint": "expiree", "seuil atteint": "seuil"}
+STATUS_ALIASES = {
+    "seuil non atteint": "expiree", "seuil atteint": "seuil",
+    # Registre de l'Initiative citoyenne européenne.
+    "ongoing": "ouverte", "registered": "ouverte", "insufficient_support": "expiree",
+    "insufficient_support_after_verification": "expiree", "withdrawn": "retiree", "verification": "verification",
+    "submitted": "soumise", "answered": "repondue",
+}
 _ID_RE = re.compile(r"^\d+$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
 

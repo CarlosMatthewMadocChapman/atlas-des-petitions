@@ -92,17 +92,24 @@ def update(
     path: Path,
     recovered_path: Path | None = None,
     get: Callable[[str], bytes] = _get,
-    snapshots: str = SNAPSHOTS,
+    snapshots: str | None = SNAPSHOTS,
+    current: Path | None = None,
 ) -> dict[str, Any]:
     """Ajoute les instantanés publiés qui manquent, puis le dernier relevé des pétitions retrouvées."""
     history = load(path)
     added = []
-    for date in snapshot_dates(get(snapshots).decode("utf-8", errors="replace")):
+    for date in snapshot_dates(get(snapshots).decode("utf-8", errors="replace")) if snapshots else []:
         if date in history["dates"] and history["sources"][history["dates"].index(date)] == "data.gouv.fr":
             continue
         result = parse_csv(get(f"{snapshots}{date}_petitions.csv"))
         if add_reading(history, date, "data.gouv.fr", {p.id: p.votes for p in result.petitions}):
             added.append(date)
+    if current is not None and (current / "petitions.csv").exists():
+        # Pas d'archives publiques (registre de l'ICE) : le relevé de l'Atlas, daté du jour de sa lecture.
+        day = json.loads((current / "source.json").read_text(encoding="utf-8"))["retrieved_at"][:10]
+        result = parse_csv((current / "petitions.csv").read_bytes())
+        if add_reading(history, day, "registre officiel", {p.id: p.votes for p in result.petitions}):
+            added.append(f"{day} (registre officiel)")
     if recovered_path is not None and recovered_path.exists():
         recovered = json.loads(recovered_path.read_text(encoding="utf-8"))
         day = recovered.get("read_on")

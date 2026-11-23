@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { EuropeFacts, languageName, useEuropeExtra } from '../components/EuropeFacts';
 import { chamber } from '../lib/chamber';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CompareButton, FavoriteButton, OfficialLink, ShareButton } from '../components/Actions';
@@ -19,6 +20,7 @@ const GROUP_ORDER: RelationType[] = ['proche', 'comparaison', 'complementaire', 
 export function PetitionView() {
   const { id = '' } = useParams();
   const core = useCore();
+  const europe = useEuropeExtra(chamber.id === 'europe' ? (id ?? '') : '');
   const navigate = useNavigate();
   const petition = core.byId.get(id);
   const [detail, setDetail] = useState<PetitionDetail | null | 'erreur'>(null);
@@ -74,7 +76,7 @@ export function PetitionView() {
       </nav>
 
       <header className="petition__head">
-        <p className="eyebrow num">Pétition n° {petition.id}</p>
+        <p className="eyebrow num">{chamber.id === 'europe' ? `Initiative ${europe?.regnum ?? ''}` : `Pétition n° ${petition.id}`}</p>
         <h1>{petition.title}</h1>
         <div className="petition__cta">
           <OfficialLink id={petition.id} meta={core.meta} prominent />
@@ -83,7 +85,7 @@ export function PetitionView() {
           <ShareButton path={`/petition/${petition.id}`} title={petition.title} />
         </div>
         <p className="petition__warning">
-          L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel {chamber.of}.
+          L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel{chamber.id === 'europe' ? " de l'initiative ou celui de la Commission européenne" : ` ${chamber.of}`}.
         </p>
         {chamber.suiteADonner && <p className="source-note">
           Pour suivre les éventuelles suites parlementaires :{' '}
@@ -110,8 +112,8 @@ export function PetitionView() {
               </div>
               <div><dt>Date limite de vote</dt><dd>{formatDate(text?.deadline ?? null)}</dd></div>
               {/* Le fichier du Sénat ne donne ni commission ni législature : rien à afficher plutôt que « non renseignée ». */}
-              {chamber.id === 'an' && <div><dt>Commission</dt><dd>{petition.commission ?? 'non renseignée'}</dd></div>}
-              {chamber.id === 'an' && <div><dt>Législature</dt><dd>{petition.legislature || 'non renseignée'}</dd></div>}
+              {chamber.commissions && <div><dt>Commission</dt><dd>{petition.commission ?? 'non renseignée'}</dd></div>}
+              {chamber.commissions && <div><dt>Législature</dt><dd>{petition.legislature || 'non renseignée'}</dd></div>}
             </dl>
             {text?.decision && (
               <div className="decision">
@@ -121,6 +123,8 @@ export function PetitionView() {
             )}
           </section>
 
+          {europe && <EuropeFacts extra={europe} />}
+
           {core.meta.history && (
             <section aria-labelledby="evolution">
               <h2 id="evolution" className="section-title">L'évolution des signatures</h2>
@@ -129,11 +133,17 @@ export function PetitionView() {
           )}
 
           <section aria-labelledby="texte">
-            <h2 id="texte" className="section-title">Texte de la pétition</h2>
-            <p className="source-note">
+            <h2 id="texte" className="section-title">{chamber.id === 'europe' ? "Objectifs de l'initiative" : 'Texte de la pétition'}</h2>
+            {chamber.id === 'europe' ? (
+              <p className="source-note">
+                Objectifs tels que publiés dans le registre officiel, sans modification
+                {europe?.language ? `, dans leur langue d'origine (${languageName(europe.language)}) : le registre n'en donne pas de version française` : ', dans leur version française'}.
+                L'annexe et les documents de l'initiative sont sur sa page officielle.
+              </p>
+            ) : <p className="source-note">
               Description telle que publiée dans le jeu de données, sans modification. Elle est issue d'une extraction de métadonnées et peut être plus courte que le texte intégral
               {isLong && ' (celle-ci atteint la limite de la colonne et semble tronquée)'}. Le texte complet est sur le site officiel.
-            </p>
+            </p>}
             {detail === null && <Loading label="Chargement du texte…" />}
             {detail === 'erreur' && <p className="note note--warn" role="alert">Le texte n'a pas pu être chargé. Le titre et les faits restent valables.</p>}
             {text && (

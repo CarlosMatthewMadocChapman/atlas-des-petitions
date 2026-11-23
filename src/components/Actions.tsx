@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { chamber } from '../lib/chamber';
 import { Check, ExternalLink, Link2, Scale, Star } from 'lucide-react';
 import { officialUrl } from '../lib/data';
 import type { Meta } from '../lib/types';
@@ -49,7 +50,7 @@ export function OfficialLink({ id, meta, prominent }: { id: string; meta: Meta; 
       target="_blank"
       rel="noopener noreferrer"
     >
-      Voir la pétition sur le site officiel
+      {chamber.id === 'europe' ? "Voir l'initiative sur le site officiel" : 'Voir la pétition sur le site officiel'}
       <ExternalLink size={16} aria-hidden="true" />
       <span className="visually-hidden"> (s'ouvre dans un nouvel onglet)</span>
     </a>

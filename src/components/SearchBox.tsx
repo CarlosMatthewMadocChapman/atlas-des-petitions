@@ -13,7 +13,7 @@ interface Props {
   autoFocus?: boolean;
 }
 
-export function SearchBox({ value, onSubmit, onLive, large, label = 'Rechercher une pétition', placeholder = chamber.id === 'an' ? 'CNews, pesticides, Gaza, destitution…' : 'retraites, handicap, chasse, vaccins…', autoFocus }: Props) {
+export function SearchBox({ value, onSubmit, onLive, large, label = 'Rechercher une pétition', placeholder = chamber.placeholder, autoFocus }: Props) {
   const [text, setText] = useState(value);
   const id = useId();
   const timer = useRef<number>();

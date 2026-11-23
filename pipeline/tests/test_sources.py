@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from atlas_pipeline.ingest import parse_csv
-from atlas_pipeline.sources import AN, SENAT, SOURCES
+from atlas_pipeline.sources import AN, EUROPE, SENAT, SOURCES
 
 HEADER = "titre;description;date_publication;nb_votes;statut;date_limite_vote;type;url;identifiant\n"
 
@@ -22,7 +22,8 @@ def test_le_fichier_du_senat_se_lit_et_ses_statuts_sont_traduits():
 
 
 def test_chaque_chambre_a_son_espace():
-    assert set(SOURCES) == {"an", "senat"}
+    assert set(SOURCES) == {"an", "senat", "europe"}
+    assert EUROPE.register and EUROPE.snapshots is None and EUROPE.root(Path("app")) == Path("app") / "europe"
     assert AN.root(Path("app")) == Path("app")
     assert SENAT.root(Path("app")) == Path("app") / "senat"
     assert SENAT.recover is False and AN.recover is True

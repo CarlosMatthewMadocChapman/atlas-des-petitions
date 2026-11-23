@@ -36,6 +36,10 @@ export const STATUS_LABEL: Record<Status, string> = {
   classee: 'Classée',
   expiree: 'Expirée',
   seuil: 'Seuil atteint',
+  retiree: 'Retirée',
+  verification: 'Signatures en vérification',
+  soumise: 'Soumise à la Commission',
+  repondue: 'Réponse de la Commission',
   inconnu: 'Statut inconnu',
 };
 
@@ -45,6 +49,10 @@ export const STATUS_HELP: Record<Status, string> = {
   classee: 'Classée par la commission compétente (voir la décision publiée).',
   expiree: 'Le délai de collecte est écoulé sans atteindre le seuil requis.',
   seuil: 'La pétition a réuni 100 000 signatures en six mois : la conférence des présidents du Sénat peut l\'inscrire à l\'ordre du jour.',
+  retiree: 'Les organisateurs ont retiré l\'initiative avant la fin de la collecte.',
+  verification: 'La collecte est close ; les autorités nationales vérifient les signatures.',
+  soumise: 'Les signatures sont validées et l\'initiative a été remise à la Commission, qui doit répondre dans les six mois.',
+  repondue: 'La Commission européenne a publié sa réponse (lien sur la fiche).',
   inconnu: 'Le statut du jeu de données n\'est pas reconnu.',
 };
 

@@ -1,1 +1,1 @@
-{ "petitions": 400, "senat": 100, "note": "Nombre de fiches de pétitions publiées en pages statiques (petitions : Assemblée, senat : Sénat). Le déploiement envoie les fichiers un par un : monter par étapes (voir README)." }
+{ "petitions": 400, "senat": 100, "europe": 150, "note": "Nombre de fiches de pétitions publiées en pages statiques (petitions : Assemblée, senat : Sénat, europe : Initiative citoyenne européenne). Le déploiement envoie les fichiers un par un : monter par étapes (voir README)." }

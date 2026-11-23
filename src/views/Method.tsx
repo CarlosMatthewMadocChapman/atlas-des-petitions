@@ -67,22 +67,46 @@ export function Method() {
         <div className="method__body prose">
           <section id="sources">
             <h2>D'où viennent les informations</h2>
-            <p>
-              Le catalogue s'appuie principalement sur le jeu de données ouvert{' '}
-              <a href={meta.dataset_page} target="_blank" rel="noopener noreferrer">« Pétitions {chamber.of} »</a> publié sur data.gouv.fr, sous{' '}
-              <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" target="_blank" rel="noopener noreferrer">Licence Ouverte / Open Licence 2.0</a>. Le fichier est actualisé
-              chaque lundi par ses producteurs.{chamber.recovery
-                ? " Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas."
-                : " Son programme relit chaque semaine tous les numéros de la plateforme officielle."}
-            </p>
-            <p>
-              Les titres, descriptions, dates, soutiens, statuts, commissions et décisions disponibles sont repris depuis leurs sources respectives, avec leur provenance.
-              Les fiches récupérées directement sur le site officiel peuvent contenir moins de champs que le CSV, notamment pour les décisions.
-              Chaque fiche renvoie vers la pétition sur <a href={meta.official_site} target="_blank" rel="noopener noreferrer">le site officiel</a>, seul endroit où l'on peut la signer.
-            </p>
-            <p className="note">
-              Attention : la colonne « description » du fichier est issue d'une extraction de métadonnées. Elle peut être plus courte que le texte intégral de la pétition.
-            </p>
+            {chamber.id === 'europe' ? (
+              <>
+                <p>
+                  Le catalogue est lu dans le{' '}
+                  <a href="https://citizens-initiative.europa.eu/find-initiative_fr" target="_blank" rel="noopener noreferrer">registre officiel de l'Initiative citoyenne européenne</a>,
+                  par l'interface publique qu'utilise le site de la Commission, une fois par semaine. Toutes les initiatives enregistrées depuis 2012 y figurent, avec leur statut,
+                  leurs signatures, leurs étapes et, le cas échéant, la réponse de la Commission. Les contenus de la Commission sont réutilisables sous{' '}
+                  <a href={chamber.licence.url} target="_blank" rel="noopener noreferrer">licence CC BY 4.0</a> ; les textes des initiatives sont ceux de leurs organisateurs, cités avec leur source.
+                </p>
+                <p>
+                  L'Atlas reprend la version française de chaque texte quand elle existe, sinon la version originale, signalée sur la fiche. Il ne garde <strong>aucune donnée personnelle</strong> :
+                  ni les noms ni les adresses des organisateurs, ni la liste des financeurs, pourtant publiés par le registre.
+                  Le registre ne conserve pas d'historique hebdomadaire : les courbes commencent au premier relevé de l'Atlas, le 23 novembre 2026.
+                </p>
+                <p>
+                  Une initiative doit réunir <strong>un million de signatures en douze mois</strong>, avec un minimum atteint dans au moins sept pays de l'Union, pour que la Commission
+                  soit tenue d'y répondre. Chaque fiche donne les signatures pays par pays quand le registre les publie, et renvoie vers{' '}
+                  <a href={meta.official_site} target="_blank" rel="noopener noreferrer">la page officielle de l'initiative</a>.
+                </p>
+              </>
+            ) : (
+              <>
+                <p>
+                  Le catalogue s'appuie principalement sur le jeu de données ouvert{' '}
+                  <a href={meta.dataset_page} target="_blank" rel="noopener noreferrer">« Pétitions {chamber.of} »</a> publié sur data.gouv.fr, sous{' '}
+                  <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" target="_blank" rel="noopener noreferrer">Licence Ouverte / Open Licence 2.0</a>. Le fichier est actualisé
+                  chaque lundi par ses producteurs.{chamber.recovery
+                    ? " Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas."
+                    : " Son programme relit chaque semaine tous les numéros de la plateforme officielle."}
+                </p>
+                <p>
+                  Les titres, descriptions, dates, soutiens, statuts, commissions et décisions disponibles sont repris depuis leurs sources respectives, avec leur provenance.
+                  Les fiches récupérées directement sur le site officiel peuvent contenir moins de champs que le CSV, notamment pour les décisions.
+                  Chaque fiche renvoie vers la pétition sur <a href={meta.official_site} target="_blank" rel="noopener noreferrer">le site officiel</a>, seul endroit où l'on peut la signer.
+                </p>
+                <p className="note">
+                  Attention : la colonne « description » du fichier est issue d'une extraction de métadonnées. Elle peut être plus courte que le texte intégral de la pétition.
+                </p>
+              </>
+            )}
           </section>
 
           {chamber.suiteADonner && <section id="autres-projets">
