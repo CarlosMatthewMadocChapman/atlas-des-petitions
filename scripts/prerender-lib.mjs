@@ -422,23 +422,28 @@ export function renderRecovered(ctx) {
   const count = m.recovered?.count ?? 0;
   const sourceCount = m.counts.petitions - count;
   const title = 'Pourquoi des pétitions manquaient au fichier public';
-  const description = "Comment l'Atlas des pétitions a identifié une omission dans les données ouvertes, retrouvé les fiches officielles et documenté leur provenance.";
+  const description = "Comment l'Atlas des pétitions a identifié une omission dans les données ouvertes, retrouvé les fiches officielles, documenté leur provenance et obtenu la correction du fichier.";
   const body = `<div class="container page method">
     ${crumbs(ctx, [{ label: 'Pétitions retrouvées' }])}
     <header class="page-head">
       <p class="eyebrow">Enquête sur les données · depuis novembre 2026</p>
       <h1>Pourquoi des pétitions manquaient au fichier public</h1>
-      <p class="lede">Une pétition peut être visible sur le site de l'Assemblée nationale et rester absente du fichier ouvert utilisé pour l'explorer. En construisant l'Atlas, nous avons découvert cette anomalie, remonté à sa cause probable et retrouvé les fiches manquantes.</p>
+      <p class="lede">Une pétition peut être visible sur le site de l'Assemblée nationale et rester absente du fichier ouvert utilisé pour l'explorer. En construisant l'Atlas, nous avons découvert cette anomalie, remonté à sa cause et retrouvé les fiches manquantes. Le producteur du fichier l'a corrigée le 16 novembre 2026.</p>
     </header>
     <div class="prose audit">
       <section>
         <h2>Ce que contient le catalogue actuel</h2>
-        <p><strong>${NUMBER.format(m.counts.petitions)} pétitions</strong> : ${NUMBER.format(sourceCount)} issues du fichier ouvert daté du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} et ${NUMBER.format(count)} fiches absentes de ce fichier, vérifiées directement sur le site officiel${m.recovered?.read_on ? ` le ${esc(formatDate(m.recovered.read_on))}` : ''}. Ces dates désignent des lectures différentes ; les soutiens ne sont pas actualisés en temps réel.</p>
+        <p><strong>${NUMBER.format(m.counts.petitions)} pétitions</strong> : ${NUMBER.format(sourceCount)} issues du fichier ouvert daté du ${esc(formatDate(m.source.file_date ?? m.source.resource_last_modified))} et ${NUMBER.format(count)} fiches qui n'y figurent pas encore, vérifiées directement sur le site officiel${m.recovered?.read_on ? ` le ${esc(formatDate(m.recovered.read_on))}` : ''}. Ces dates désignent des lectures différentes ; les soutiens ne sont pas actualisés en temps réel.</p>
       </section>
       <section>
         <h2>La découverte</h2>
         <p>Le 9 novembre 2026, en confrontant le fichier de données ouvertes aux pétitions visibles sur la plateforme officielle, l'Atlas a relevé que 42 des 300 premières pétitions du classement par soutiens n'étaient pas dans le CSV. La pétition n° 5820 dépassait le million de signatures lors du relevé du 10 novembre.</p>
-        <p>La recherche dans le code de fabrication du jeu de données a conduit à un <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement public sur GitHub (n° 839)</a> : le programme considère certains numéros absents comme définitivement inutilisés. Un numéro peut pourtant être attribué avant la publication effective d'une pétition. Si un numéro supérieur est publié entre-temps, cette pétition risque de ne plus entrer dans le fichier. Une correction a été proposée aux producteurs ; son intégration reste à vérifier.</p>
+        <p>La recherche dans le code de fabrication du jeu de données a conduit à un <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement public sur GitHub (n° 839)</a> : le programme considère certains numéros absents comme définitivement inutilisés. Un numéro peut pourtant être attribué avant la publication effective d'une pétition. Si un numéro supérieur est publié entre-temps, cette pétition risque de ne plus entrer dans le fichier.</p>
+      </section>
+      <section>
+        <h2>La correction à la source</h2>
+        <p>Le 16 novembre 2026, l'équipe de data.gouv.fr a intégré <a href="https://github.com/datagouv/datagouvfr_data_pipelines/pull/841" target="_blank" rel="noopener noreferrer">une correction de son programme (n° 841)</a> et clos le signalement. Le fichier publié le 18 novembre contient désormais <strong>les 906 pétitions</strong> que l'Atlas avait dû rattraper jusque-là, dont la n° 5820.</p>
+        <p>Le rattrapage reste en place comme filet : il couvre les pétitions publiées après la fabrication du fichier hebdomadaire, en attendant qu'elles y entrent. Le 19 novembre, les 108 fiches ainsi ajoutées dataient toutes des 18 et 19 novembre, après le fichier du 18.</p>
       </section>
       <section>
         <h2>Le rattrapage : des sources et des dates distinctes</h2>
@@ -460,11 +465,11 @@ export function renderRecovered(ctx) {
       <section>
         <h2>Ce que les chiffres disent, et leurs limites</h2>
         <p>« Fichier du 9 novembre » désigne la date du CSV. « Fiche vérifiée le 10 novembre » désigne une consultation distincte sur le site officiel. Les dates de publication, les statuts et les soutiens peuvent évoluer. Certaines descriptions sont partielles et certaines informations officielles restent inconnues.</p>
-        <p>Une pétition absente du CSV n'est pas forcément une pétition cachée ou retirée. Le diagnostic porte sur la <strong>production du fichier ouvert</strong> et sur la capacité des outils citoyens à utiliser des données fiables. Le rattrapage ne remplace pas la correction souhaitable à la source.</p>
+        <p>Une pétition absente du CSV n'est pas forcément une pétition cachée ou retirée. Le diagnostic porte sur la <strong>production du fichier ouvert</strong> et sur la capacité des outils citoyens à utiliser des données fiables. Depuis la correction du 16 novembre, le fichier ouvert redevient la source principale, et le rattrapage comble seulement le délai entre deux publications.</p>
       </section>
       <section>
         <h2>Vérifier et prolonger</h2>
-        <p><a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">Le signalement et sa proposition technique</a> · <a href="https://github.com/CarlosMatthewMadocChapman/atlas-des-petitions/blob/main/docs/RECUPERATION-PETITIONS.md" target="_blank" rel="noopener noreferrer">La procédure détaillée et les sources dans le dépôt GitHub public</a> · <a href="${esc(urls.audit(ctx))}">Le rapport d'audit du catalogue</a> · <a href="${esc(urls.app(ctx, '/methode'))}">La méthode de l'Atlas</a>.</p>
+        <p><a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">Le signalement et sa proposition technique</a> · <a href="https://github.com/datagouv/datagouvfr_data_pipelines/pull/841" target="_blank" rel="noopener noreferrer">La correction intégrée le 16 novembre</a> · <a href="https://github.com/CarlosMatthewMadocChapman/atlas-des-petitions/blob/main/docs/RECUPERATION-PETITIONS.md" target="_blank" rel="noopener noreferrer">La procédure détaillée et les sources dans le dépôt GitHub public</a> · <a href="${esc(urls.audit(ctx))}">Le rapport d'audit du catalogue</a> · <a href="${esc(urls.app(ctx, '/methode'))}">La méthode de l'Atlas</a>.</p>
       </section>
     </div>
   </div>`;

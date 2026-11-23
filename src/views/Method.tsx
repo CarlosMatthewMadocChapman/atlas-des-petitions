@@ -189,7 +189,12 @@ export function Method() {
               La pétition n° 5820, dépassant le million de soutiens lors du relevé du 10 novembre, en fournit un exemple.
             </p>
             <p>
-              L'Atlas vérifie désormais séparément les numéros absents du CSV sur la plateforme officielle. Les fiches réellement publiées
+              Le 16 novembre 2026, data.gouv.fr a{' '}
+              <a href="https://github.com/datagouv/datagouvfr_data_pipelines/pull/841" target="_blank" rel="noopener noreferrer">corrigé son programme</a>.
+              Le fichier du 18 novembre contient les 906 pétitions que l'Atlas avait rattrapées jusque-là, dont la n° 5820.
+            </p>
+            <p>
+              L'Atlas continue de vérifier les numéros absents du CSV sur la plateforme officielle : ce filet couvre désormais les pétitions publiées après le dernier fichier. Les fiches réellement publiées
               sont fusionnées par numéro, avec la date de consultation et la provenance ; si une fiche réapparaît dans le CSV, celui-ci reprend la priorité.
               Le relevé de novembre comprenait 4 269 pétitions dans le fichier du 9 novembre et 861 fiches retrouvées le 10 novembre, soit 5 130 pétitions.
             </p>
