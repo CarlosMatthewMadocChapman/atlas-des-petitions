@@ -7,6 +7,8 @@
 //
 // Logique pure, sans dépendance : elle reçoit les données déjà chargées et renvoie du HTML.
 
+import { CHECKED_ON as LOCAL_CHECKED_ON, CITIES, OTHER_ROUTES, TO_CHECK } from './local-petitions.mjs';
+
 export const STATUS_LABEL = { ouverte: 'Ouverte', archivee: 'Archivée', classee: 'Classée', expiree: 'Expirée', seuil: 'Seuil atteint', retiree: 'Retirée', verification: 'Signatures en vérification', soumise: 'Soumise à la Commission', repondue: 'Réponse de la Commission', inconnu: 'Statut inconnu' };
 export const RELATION_LABEL = {
   proche: 'Textes très proches',
@@ -130,6 +132,7 @@ export const urls = {
   app: (ctx, hash = '') => `${ctx.base}${hash ? `#${hash}` : ''}`,
   audit: (ctx) => `${ctx.base}audit/`,
   recovered: (ctx) => `${ctx.base}donnees-retrouvees/`,
+  local: (ctx) => `${ctx.base}villes/`,
 };
 
 /** Regroupe les textes très proches d'une constellation (même logique que src/lib/condense.ts). */
@@ -194,7 +197,7 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a>` : ''}${otherSpaces(ctx)}</nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a><a href="${esc(urls.local(ctx))}">Pétitions locales</a>` : ''}${otherSpaces(ctx)}</nav></div></header>
     <main class="main">
 ${body}
     </main>
@@ -440,6 +443,42 @@ ${auditMarkdownToHtml(markdown)}
 
 
 /** Récit daté du rattrapage, plus décompte courant issu des métadonnées versionnées. */
+/** Répertoire des pétitions locales : où s'adresser à sa ville (scripts/local-petitions.mjs). Aucun contenu n'est lu. */
+export function renderLocal(ctx) {
+  const path = urls.local(ctx);
+  const title = 'Pétitions locales : où s’adresser à sa ville';
+  const description = 'Les dispositifs de pétition et d’interpellation des grandes villes françaises : seuils, délais, suites, et lien vers chaque plateforme officielle.';
+  const rows = CITIES.map((c) => `<tr><th scope="row">${esc(c.city)}</th><td>${esc(c.device)}</td><td>${esc(c.threshold)}</td><td>${esc(c.outcome)}</td><td><a href="${esc(c.platform)}" target="_blank" rel="noopener noreferrer">Plateforme</a> · <a href="${esc(c.source)}" target="_blank" rel="noopener noreferrer">Règles</a></td></tr>`).join('');
+  const body = `<div class="container page method">
+    ${crumbs(ctx, [{ label: 'Pétitions locales' }])}
+    <header class="page-head">
+      <p class="eyebrow">Répertoire · vérifié le ${esc(formatDate(LOCAL_CHECKED_ON))}</p>
+      <h1>Pétitions locales : où s’adresser à sa ville</h1>
+      <p class="lede">Plusieurs villes ouvrent un droit de pétition ou d’interpellation à leurs habitants, chacune avec ses règles et sa plateforme. Ce répertoire dit où s’adresser ; l’Atlas ne lit ni ne reprend le contenu de ces plateformes.</p>
+    </header>
+    <div class="prose audit">
+      <section>
+        <h2>Les règles, ville par ville</h2>
+        <p>Chaque règle vient d’une page officielle de la ville, lue le ${esc(formatDate(LOCAL_CHECKED_ON))}. Elles changent d’un mandat à l’autre : vérifiez-les avant de déposer.</p>
+        <div style="overflow-x:auto"><table><thead><tr><th scope="col">Ville</th><th scope="col">Dispositif</th><th scope="col">Seuil</th><th scope="col">Suite prévue</th><th scope="col">Liens</th></tr></thead><tbody>${rows}</tbody></table></div>
+      </section>
+      <section>
+        <h2>Plateformes repérées, règles à vérifier</h2>
+        <ul>${TO_CHECK.map((c) => `<li><a href="${esc(c.platform)}" target="_blank" rel="noopener noreferrer">${esc(c.city)}</a> : ${esc(c.note)}.</li>`).join('')}</ul>
+        <p>Une ville manque, ou une règle a changé ? <a href="${esc(urls.app(ctx, '/methode'))}">Signalez-le depuis la page Méthode</a> : le répertoire s’enrichit au fil des vérifications.</p>
+      </section>
+      <section>
+        <h2>Au-delà de la ville</h2>
+        <p>L’Atlas explore aussi les pétitions de l’<a href="${esc(ctx.base)}">Assemblée nationale</a>, du <a href="${esc(ctx.base)}senat/">Sénat</a> et de l’<a href="${esc(ctx.base)}europe/">Initiative citoyenne européenne</a>. Deux autres voies n’ont pas encore de données ouvertes :</p>
+        <ul>${OTHER_ROUTES.map((r) => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">${esc(r.name)}</a> : ${esc(r.note)}.</li>`).join('')}</ul>
+      </section>
+    </div>
+  </div>`;
+  return shell(ctx, { title, description, path, depth: 1, body,
+    jsonLd: { '@context': 'https://schema.org', '@type': 'WebPage', name: title, description,
+      url: `${ctx.origin}${path}`, inLanguage: 'fr' } });
+}
+
 export function renderRecovered(ctx) {
   const m = ctx.meta;
   const path = urls.recovered(ctx);
@@ -509,5 +548,6 @@ export function buildAll(ctx) {
   for (const d of ctx.dossiers) pages.set(urls.constellation(ctx, d.id), renderConstellation(ctx, d));
   for (const theme of ctx.taxonomy) for (const page of themePages(ctx, theme)) pages.set(page.path, page.html);
   if (chamberOf(ctx.meta).id === 'an') pages.set(urls.recovered(ctx), renderRecovered(ctx));
+  if (chamberOf(ctx.meta).id === 'an') pages.set(urls.local(ctx), renderLocal(ctx));
   return pages;
 }

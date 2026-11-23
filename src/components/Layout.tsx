@@ -115,6 +115,7 @@ function Footer() {
           <ul className="footer__links">
             <li><Link to="/methode">Méthode et données</Link></li>
             {chamber.recovery && <li><a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Pourquoi des pétitions manquaient au fichier</a></li>}
+            {chamber.id === 'an' && <li><a href={`${import.meta.env.BASE_URL}villes/`}>Pétitions locales : où s’adresser à sa ville</a></li>}
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
             {chamber.suiteADonner && <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>}
             {otherSpaces.map((s) => <li key={s.id}><a href={s.href}>{s.label}, dans leur propre espace</a></li>)}
