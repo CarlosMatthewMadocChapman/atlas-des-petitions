@@ -92,14 +92,15 @@ def update(
     path: Path,
     recovered_path: Path | None = None,
     get: Callable[[str], bytes] = _get,
+    snapshots: str = SNAPSHOTS,
 ) -> dict[str, Any]:
     """Ajoute les instantanés publiés qui manquent, puis le dernier relevé des pétitions retrouvées."""
     history = load(path)
     added = []
-    for date in snapshot_dates(get(SNAPSHOTS).decode("utf-8", errors="replace")):
+    for date in snapshot_dates(get(snapshots).decode("utf-8", errors="replace")):
         if date in history["dates"] and history["sources"][history["dates"].index(date)] == "data.gouv.fr":
             continue
-        result = parse_csv(get(f"{SNAPSHOTS}{date}_petitions.csv"))
+        result = parse_csv(get(f"{snapshots}{date}_petitions.csv"))
         if add_reading(history, date, "data.gouv.fr", {p.id: p.votes for p in result.petitions}):
             added.append(date)
     if recovered_path is not None and recovered_path.exists():

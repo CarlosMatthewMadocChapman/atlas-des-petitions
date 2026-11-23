@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { chamber } from '../lib/chamber';
 import { fileDate, formatDate } from '../lib/format';
 import { useDocumentTitle } from '../lib/hooks';
 import type { SourceInfo } from '../lib/types';
@@ -41,9 +42,9 @@ export function Method() {
         <h1>Ce que l'Atlas sait, ce qu'il calcule, ce qu'il ignore</h1>
         <p className="lede">
           L'Atlas des pétitions est une <strong>expérimentation indépendante</strong> créée par Carlos Chapman pour{' '}
-          <a href="https://radiodufutur.com/">Radio du Futur</a>. Il n'est affilié ni à l'Assemblée nationale ni à aucune institution, ne permet pas de signer, et ne prend
+          <a href="https://radiodufutur.com/">Radio du Futur</a>. Il n'est affilié ni {chamber.at} ni à aucune autre institution, ne permet pas de signer, et ne prend
           aucune position sur le fond des pétitions.
-          {' '}<a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Découvrir pourquoi certaines pétitions ont dû être retrouvées séparément.</a>
+          {chamber.recovery && <>{' '}<a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Découvrir pourquoi certaines pétitions ont dû être retrouvées séparément.</a></>}
         </p>
       </header>
 
@@ -51,8 +52,8 @@ export function Method() {
         <nav className="method__toc" aria-label="Sommaire de la page">
           <ol>
             <li><a href="#sources">D'où viennent les informations</a></li>
-            <li><a href="#absentes">Comment les pétitions absentes ont été retrouvées</a></li>
-            <li><a href="#autres-projets">Autres observatoires citoyens</a></li>
+            {chamber.recovery && <li><a href="#absentes">Comment les pétitions absentes ont été retrouvées</a></li>}
+            {chamber.suiteADonner && <li><a href="#autres-projets">Autres observatoires citoyens</a></li>}
             <li><a href="#mesure">Ce qui est mesuré, ce qui reste inconnu</a></li>
             <li><a href="#classement">Comment les pétitions sont classées</a></li>
             <li><a href="#rapprochements">Comment on les rapproche</a></li>
@@ -68,9 +69,11 @@ export function Method() {
             <h2>D'où viennent les informations</h2>
             <p>
               Le catalogue s'appuie principalement sur le jeu de données ouvert{' '}
-              <a href={meta.dataset_page} target="_blank" rel="noopener noreferrer">« Pétitions de l'Assemblée nationale »</a> publié sur data.gouv.fr, sous{' '}
+              <a href={meta.dataset_page} target="_blank" rel="noopener noreferrer">« Pétitions {chamber.of} »</a> publié sur data.gouv.fr, sous{' '}
               <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" target="_blank" rel="noopener noreferrer">Licence Ouverte / Open Licence 2.0</a>. Le fichier est actualisé
-              chaque lundi par ses producteurs. Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas.
+              chaque lundi par ses producteurs.{chamber.recovery
+                ? " Lorsque ce fichier omet des pétitions publiées, un rattrapage distinct lit leurs fiches sur la plateforme officielle ; ces entrées sont identifiées et datées dans l'Atlas."
+                : " Son programme relit chaque semaine tous les numéros de la plateforme officielle."}
             </p>
             <p>
               Les titres, descriptions, dates, soutiens, statuts, commissions et décisions disponibles sont repris depuis leurs sources respectives, avec leur provenance.
@@ -82,7 +85,7 @@ export function Method() {
             </p>
           </section>
 
-          <section id="autres-projets">
+          {chamber.suiteADonner && <section id="autres-projets">
             <h2>Autres observatoires citoyens</h2>
             <p>
               <a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">« Suite à donner »</a>{' '}
@@ -97,7 +100,7 @@ export function Method() {
               <a href="https://github.com/datagouv/datagouvfr_data_pipelines/issues/839" target="_blank" rel="noopener noreferrer">signalement technique public</a>.
               Ce travail permet de comparer les relevés et d'améliorer les données disponibles.
             </p>
-          </section>
+          </section>}
 
           <section id="mesure">
             <h2>Ce qui est mesuré, ce qui reste inconnu</h2>
@@ -110,7 +113,7 @@ export function Method() {
               décision ni aucune évolution de soutiens.
             </p>
             <p>
-              Le rapport d'audit distingue les fiches issues du fichier public et celles vérifiées séparément. Le comptage global visible sur le site de l'Assemblée est une autre mesure, à relever indépendamment dans le{' '}
+              Le rapport d'audit distingue les fiches issues du fichier public et celles vérifiées séparément. Le comptage global visible sur le site officiel est une autre mesure, à relever indépendamment dans le{' '}
               <a href={`${import.meta.env.BASE_URL}audit/`}>rapport d'audit</a>
               {meta.public_count
                 ? ` : ${meta.public_count.count.toLocaleString('fr-FR')} initiatives relevées sur le site officiel le ${formatDate(meta.public_count.observed_on)}.`
@@ -126,8 +129,8 @@ export function Method() {
             <h2>Comment les pétitions sont classées</h2>
             <p>
               Vingt familles thématiques (démocratie, santé, logement, médias…) sont attribuées <strong>automatiquement</strong> par repérage de vocabulaire, avec plus de poids pour le titre.
-              Une pétition peut recevoir jusqu'à trois familles ; {(total - meta.counts.themed).toLocaleString('fr-FR')} n'en ont aucune. Ce n'est <strong>pas une classification officielle</strong> de
-              l'Assemblée nationale, et une famille n'est jamais une position politique.
+              Une pétition peut recevoir jusqu'à trois familles ; {(total - meta.counts.themed).toLocaleString('fr-FR')} n'en ont aucune. Ce n'est <strong>pas une classification officielle</strong> {chamber.of}
+              , et une famille n'est jamais une position politique.
             </p>
             <Bars rows={core.taxonomy.map((t) => ({ label: t.label, value: stats.themes[t.id] ?? 0 })).sort((a, b) => b.value - a.value)} />
             <p>La popularité est un filtre parmi d'autres ; elle n'est jamais le seul mécanisme de visibilité.</p>
@@ -179,7 +182,7 @@ export function Method() {
             <p>Lorsque c'est possible, chaque rapprochement indique les mots communs qui l'expliquent, pour que vous puissiez le vérifier vous-même.</p>
           </section>
 
-          <section id="absentes">
+          {chamber.recovery && <section id="absentes">
             <h2>Pourquoi certaines pétitions ont dû être retrouvées séparément</h2>
             <p>
               En novembre 2026, la mise à jour de l'Atlas a révélé des pétitions publiées sur le site de l'Assemblée nationale
@@ -215,7 +218,7 @@ export function Method() {
               <a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Lire le récit complet, les étapes du rattrapage et les limites de la méthode</a>.
               {' '}Le <a href={`${import.meta.env.BASE_URL}audit/`}>rapport d'audit</a> présente les chiffres du catalogue.
             </p>
-          </section>
+          </section>}
 
           <section id="signaler">
             <h2>Signaler une erreur</h2>

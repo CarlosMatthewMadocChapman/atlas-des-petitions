@@ -1,4 +1,5 @@
 import { useCallback, useSyncExternalStore } from 'react';
+import { chamber } from '../lib/chamber';
 
 /** Petite liste d'identifiants persistée localement (aucun compte, aucun serveur). */
 export interface IdListStore {
@@ -58,8 +59,10 @@ export function createIdListStore(key: string, kind: 'local' | 'session', max = 
   };
 }
 
-export const favoritesStore = createIdListStore('atlas-petitions:favoris', 'local');
-export const compareStore = createIdListStore('atlas-petitions:comparaison', 'session', 4);
+// Les numéros de l'Assemblée et du Sénat se chevauchent : chaque espace garde ses propres listes.
+const prefix = chamber.id === 'an' ? 'atlas-petitions' : `atlas-petitions-${chamber.id}`;
+export const favoritesStore = createIdListStore(`${prefix}:favoris`, 'local');
+export const compareStore = createIdListStore(`${prefix}:comparaison`, 'session', 4);
 
 export function useIdList(store: IdListStore) {
   const ids = useSyncExternalStore(store.subscribe, store.get, () => []);

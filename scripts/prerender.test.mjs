@@ -52,7 +52,8 @@ describe('pages statiques de l\'Atlas', () => {
     for (const html of pages.values()) {
       for (const [, href] of html.matchAll(/href="(\/atlas\/[^"#]*)(?:#[^"]*)?"/g)) {
         // Le rapport d'audit est ajouté par prerender.mjs après buildAll(ctx).
-        if (/\.(css|svg|jpg)$/.test(href) || href === '/atlas/' || href === urls.audit(ctx)) continue;
+        // L'espace du Sénat est construit à part : son lien sort de cet ensemble de pages.
+        if (/\.(css|svg|jpg)$/.test(href) || href === '/atlas/' || href === '/atlas/senat/' || href === urls.audit(ctx)) continue;
         checked++;
         expect(known.has(href), href).toBe(true);
       }

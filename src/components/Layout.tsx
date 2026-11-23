@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { chamber, otherSpaceHref } from '../lib/chamber';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { fileDate, formatDate } from '../lib/format';
 import { SkyLayer } from './SkyLayer';
@@ -20,7 +21,7 @@ export function Wordmark() {
         <circle cx="21" cy="27" r="2.6" fill="currentColor" />
       </svg>
       <span>
-        L'Atlas <em>des pétitions</em>
+        L'Atlas <em>des pétitions</em>{chamber.id === 'senat' && ' du Sénat'}
       </span>
     </Link>
   );
@@ -42,6 +43,7 @@ function SiteNav() {
         Favoris{favorites.ids.length > 0 && <span className="nav__count num">{favorites.ids.length}</span>}
       </NavLink>
       <NavLink to="/methode">Méthode et données</NavLink>
+      <a href={otherSpaceHref} className="nav__other">{chamber.other.label}</a>
     </nav>
   );
 }
@@ -82,7 +84,7 @@ function Footer() {
         <div>
           <Wordmark />
           <p className="footer__lede">
-            Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec l'Assemblée nationale. On ne peut pas signer ici :
+            Expérimentation indépendante, <strong>sans affiliation institutionnelle</strong> avec {chamber.id === 'an' ? "l'Assemblée nationale" : 'le Sénat'}. On ne peut pas signer ici :
             chaque fiche renvoie vers la pétition officielle.
           </p>
           <p className="footer__lede">Créé par <strong>Carlos Chapman</strong> dans le cadre de{' '}
@@ -93,8 +95,8 @@ function Footer() {
         <div>
           <h2 className="eyebrow">Données</h2>
           <p>
-            Pétitions de l'Assemblée nationale, via{' '}
-            <a href={meta?.dataset_page ?? 'https://www.data.gouv.fr/datasets/petitions-de-lassemblee-nationale'} target="_blank" rel="noopener noreferrer">
+            Pétitions {chamber.of}, via{' '}
+            <a href={meta?.dataset_page ?? 'https://www.data.gouv.fr/'} target="_blank" rel="noopener noreferrer">
               data.gouv.fr
             </a>
             , sous{' '}
@@ -116,9 +118,10 @@ function Footer() {
           <h2 className="eyebrow">Repères</h2>
           <ul className="footer__links">
             <li><Link to="/methode">Méthode et données</Link></li>
-            <li><a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Pourquoi des pétitions manquaient au fichier</a></li>
+            {chamber.recovery && <li><a href={`${import.meta.env.BASE_URL}donnees-retrouvees/`}>Pourquoi des pétitions manquaient au fichier</a></li>}
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
-            <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>
+            {chamber.suiteADonner && <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>}
+            <li><a href={otherSpaceHref}>{chamber.other.label}, dans leur propre espace</a></li>
             <li><a href="https://radiodufutur.com/participer/">Participer à Radio du Futur ↗</a></li>
             <li><Link to="/favoris">Vos favoris (stockés sur cet appareil)</Link></li>
           </ul>

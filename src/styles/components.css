@@ -294,6 +294,7 @@
 .badge--archivee { background: var(--st-archivee-bg); color: var(--st-archivee-ink); }
 .badge--classee { background: var(--st-classee-bg); color: var(--st-classee-ink); }
 .badge--expiree { background: var(--st-expiree-bg); color: var(--st-expiree-ink); }
+.badge--seuil { background: var(--st-classee-bg); color: var(--st-classee-ink); }
 .badge--inconnu { background: var(--paper-sunk); color: var(--mineral); }
 .badge--auto { background: transparent; border: 1px dashed var(--mineral); color: var(--mineral); margin-left: var(--s-2); vertical-align: middle; }
 

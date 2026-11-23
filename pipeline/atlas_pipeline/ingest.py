@@ -17,7 +17,11 @@ from typing import Any
 
 REQUIRED_COLUMNS = ("identifiant", "titre", "description", "date_publication", "nb_votes", "statut", "url")
 OPTIONAL_COLUMNS = ("date_limite_vote", "commission", "legislature", "decision_commission")
-KNOWN_STATUSES = ("ouverte", "archivee", "classee", "expiree")
+# Colonnes connues mais non utilisées : « type » du Sénat (texte législatif ou mission de contrôle).
+KNOWN_EXTRA_COLUMNS = ("type",)
+KNOWN_STATUSES = ("ouverte", "archivee", "classee", "expiree", "seuil")
+# Statuts du Sénat ramenés au vocabulaire commun : « seuil non atteint » = délai écoulé sans le seuil requis.
+STATUS_ALIASES = {"seuil non atteint": "expiree", "seuil atteint": "seuil"}
 _ID_RE = re.compile(r"^\d+$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}")
 
@@ -103,7 +107,7 @@ def parse_csv(payload: bytes | str) -> IngestResult:
     reader.fieldnames = columns
 
     result = IngestResult(petitions=[], columns=columns)
-    unexpected = [c for c in columns if c not in REQUIRED_COLUMNS + OPTIONAL_COLUMNS]
+    unexpected = [c for c in columns if c not in REQUIRED_COLUMNS + OPTIONAL_COLUMNS + KNOWN_EXTRA_COLUMNS]
     if unexpected:
         result.warnings.append("Colonnes inattendues ignorées : " + ", ".join(unexpected))
     absent_optional = [c for c in OPTIONAL_COLUMNS if c not in columns]
@@ -122,6 +126,7 @@ def parse_csv(payload: bytes | str) -> IngestResult:
         seen.add(identifier)
 
         status = (row.get("statut") or "").strip().lower()
+        status = STATUS_ALIASES.get(status, status)
         if status not in KNOWN_STATUSES:
             result.unknown_statuses[status or "(vide)"] = result.unknown_statuses.get(status or "(vide)", 0) + 1
 

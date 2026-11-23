@@ -43,12 +43,12 @@ export interface ChartGeometry {
 const MONTH = new Intl.DateTimeFormat('fr-FR', { month: 'short', year: 'numeric', timeZone: 'UTC' });
 
 /** Géométrie de la courbe dans un cadre `width` × `height` (marges comprises). Pur, testé. */
-export function chartGeometry(readings: Reading[], width: number, height: number, pad = { left: 8, right: 8, top: 12, bottom: 22 }): ChartGeometry {
+export function chartGeometry(readings: Reading[], width: number, height: number, pad = { left: 8, right: 8, top: 12, bottom: 22 }, levels: number[] = [100_000, 500_000]): ChartGeometry {
   const times = readings.map((r) => Date.parse(r.date));
   const t0 = Math.min(...times);
   const t1 = Math.max(...times, t0 + DAY);
   const peak = Math.max(...readings.map((r) => r.votes), 1);
-  const thresholdValues = [100_000, 500_000].filter((v) => peak >= v / 2);
+  const thresholdValues = levels.filter((v) => peak >= v / 2);
   const max = Math.max(peak, ...thresholdValues) * 1.08;
   const x = (t: number) => pad.left + ((t - t0) / (t1 - t0)) * (width - pad.left - pad.right);
   const y = (v: number) => pad.top + (1 - v / max) * (height - pad.top - pad.bottom);

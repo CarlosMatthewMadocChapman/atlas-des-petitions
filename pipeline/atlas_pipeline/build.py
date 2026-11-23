@@ -14,7 +14,8 @@ from pathlib import Path
 
 import numpy as np
 
-from . import ALGORITHM_VERSION, DATASET_PAGE, OFFICIAL_SITE
+from . import ALGORITHM_VERSION
+from .sources import AN, Source
 from .audit import build_audit, load_public_count, render_markdown
 from .concepts import groups_as_stems
 from .curation import apply_curation, load_curation
@@ -87,6 +88,7 @@ def build_catalog(
     thresholds: Thresholds = Thresholds(),
     vectors: np.ndarray | None = None,
     recovered_path: Path | None = None,
+    chamber: Source = AN,
     history_path: Path | None = None,
 ) -> dict:
     csv_path = raw_dir / "petitions.csv"
@@ -253,15 +255,16 @@ def build_catalog(
     meta = {
         "schema": 1,
         "source": source,
-        "dataset_page": DATASET_PAGE,
-        "official_site": OFFICIAL_SITE,
+        "dataset_page": chamber.dataset_page,
+        "official_site": chamber.official_site,
+        "chamber": chamber.public(),
         "counts": {
             "petitions": len(P), "relations": len(edges), "dossiers": len(dossiers),
             "in_dossiers": sum(d["size"] for d in dossiers), "themed": sum(1 for t in themes.values() if t),
             "semantic_relations": sum(1 for e in edges if e.get("src") == "semantique"),
         },
         "detail_shard": DETAIL_SHARD,
-        "url_exceptions": {p.id: p.url for p in P if p.url != f"{OFFICIAL_SITE}/i-{p.id}"},
+        "url_exceptions": {p.id: p.url for p in P if p.url != f"{chamber.official_site}/i-{p.id}"},
         "algorithm": {
             "version": ALGORITHM_VERSION, "thresholds": asdict(thresholds),
             "min_dossier_cohesion": MIN_DOSSIER_COHESION,
@@ -356,7 +359,7 @@ def compute_vectors(app_root: Path, embedder=None):
         raise BuildError(str(error)) from error
 
 
-def run_build(app_root: Path, force: bool = False, semantic: bool = True, embedder=None) -> dict:
+def run_build(app_root: Path, force: bool = False, semantic: bool = True, embedder=None, chamber: Source = AN) -> dict:
     raw_dir = app_root / "data" / "raw"
     final_dir = app_root / "public" / "data"
     tmp_dir = app_root / "data" / "build-tmp"
@@ -371,6 +374,7 @@ def run_build(app_root: Path, force: bool = False, semantic: bool = True, embedd
         app_root / "pipeline" / "curation" / "public-count.json", vectors=vectors,
         recovered_path=app_root / RECOVERED_FILE,
         history_path=app_root / HISTORY_FILE,
+        chamber=chamber,
     )
     problems = validate_output(tmp_dir, None if force else final_dir)
     if problems:

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { chamber } from '../lib/chamber';
 import { formatDate, formatNumber } from '../lib/format';
 import { chartGeometry, loadReadings, weeklyGain, type Reading } from '../lib/history';
 import { useCore } from '../state/DataContext';
@@ -31,7 +32,7 @@ export function SignatureChart({ id, published }: { id: string; published: strin
     );
   }
 
-  const g = chartGeometry(readings, W, H);
+  const g = chartGeometry(readings, W, H, undefined, chamber.thresholds);
   const gain = weeklyGain(readings);
   const first = readings[0];
   const last = readings[readings.length - 1];

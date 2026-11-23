@@ -7,12 +7,14 @@
 
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildAll, buildContext, crawlableIndex, renderAudit, urls } from './prerender-lib.mjs';
+import { buildAll, buildContext, chamberOf, crawlableIndex, renderAudit, urls } from './prerender-lib.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
 const outDir = path.resolve(root, process.argv[2] ?? '../public/atlas');
 const origin = process.env.ATLAS_PUBLIC_ORIGIN ?? 'https://radiodufutur.com';
 const base = process.env.ATLAS_PUBLIC_BASE ?? '/atlas/';
+// Dossier de la chambre (docs/, audit) : '.' pour l'Assemblée, 'senat' pour le Sénat.
+const sourceRoot = path.resolve(root, process.env.ATLAS_SOURCE_ROOT ?? '.');
 
 const readJson = async (name) => JSON.parse(await readFile(path.join(outDir, 'data', name), 'utf8'));
 
@@ -37,10 +39,12 @@ const details = (id) => {
 
 // Vague de publication : nombre de fiches de pétitions écrites en pages statiques (static-pages.json).
 // Le circuit de déploiement envoie chaque nouveau fichier un par un : on augmente la vague par étapes.
-const wave = JSON.parse(await readFile(path.join(root, 'static-pages.json'), 'utf8')).petitions;
+// Chaque chambre a sa vague : le Sénat commence plus bas pour ne pas alourdir le déploiement d'un coup.
+const waves = JSON.parse(await readFile(path.join(root, 'static-pages.json'), 'utf8'));
+const wave = chamberOf(meta).id === 'an' ? waves.petitions : (waves[chamberOf(meta).id] ?? waves.petitions);
 const ctx = buildContext({ catalog, relations, dossiers, taxonomy, meta, details, origin, base, wave });
 const pages = buildAll(ctx);
-pages.set(urls.audit(ctx), renderAudit(ctx, await readFile(path.join(root, 'docs/AUDIT-CATALOGUE.md'), 'utf8')));
+pages.set(urls.audit(ctx), renderAudit(ctx, await readFile(path.join(sourceRoot, 'docs/AUDIT-CATALOGUE.md'), 'utf8')));
 
 // Pages périmées : on repart de zéro pour que les pétitions retirées du fichier disparaissent aussi.
 for (const dir of ['p', 'c', 't', 'audit', 'donnees-retrouvees']) await rm(path.join(outDir, dir), { recursive: true, force: true });

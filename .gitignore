@@ -6,3 +6,6 @@ public/data.previous/
 __pycache__/
 .pytest_cache/
 *.pyc
+senat/data/raw/
+senat/data/build-tmp/
+senat/public/data.previous/

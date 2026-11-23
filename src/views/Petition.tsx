@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { chamber } from '../lib/chamber';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { CompareButton, FavoriteButton, OfficialLink, ShareButton } from '../components/Actions';
 import { StatusBadge } from '../components/Badges';
@@ -82,14 +83,14 @@ export function PetitionView() {
           <ShareButton path={`/petition/${petition.id}`} title={petition.title} />
         </div>
         <p className="petition__warning">
-          L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel de l'Assemblée nationale.
+          L'Atlas est un site indépendant : <strong>on ne peut pas y signer</strong>. La signature se fait uniquement sur le site officiel {chamber.of}.
         </p>
-        <p className="source-note">
+        {chamber.suiteADonner && <p className="source-note">
           Pour suivre les éventuelles suites parlementaires :{' '}
           <a href={`https://suiteadonner.nucom.fr/petition/${encodeURIComponent(petition.id)}`} target="_blank" rel="noopener noreferrer">
             Consulter cette pétition sur « Suite à donner »
           </a>. Cet observatoire indépendant suit le parcours des pétitions ; toutes n'ont pas reçu de décision.
-        </p>
+        </p>}
       </header>
 
       <div className="petition__layout">
@@ -108,8 +109,9 @@ export function PetitionView() {
                 </dd>
               </div>
               <div><dt>Date limite de vote</dt><dd>{formatDate(text?.deadline ?? null)}</dd></div>
-              <div><dt>Commission</dt><dd>{petition.commission ?? 'non renseignée'}</dd></div>
-              <div><dt>Législature</dt><dd>{petition.legislature || 'non renseignée'}</dd></div>
+              {/* Le fichier du Sénat ne donne ni commission ni législature : rien à afficher plutôt que « non renseignée ». */}
+              {chamber.id === 'an' && <div><dt>Commission</dt><dd>{petition.commission ?? 'non renseignée'}</dd></div>}
+              {chamber.id === 'an' && <div><dt>Législature</dt><dd>{petition.legislature || 'non renseignée'}</dd></div>}
             </dl>
             {text?.decision && (
               <div className="decision">

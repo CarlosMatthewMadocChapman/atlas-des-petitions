@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { chamber } from '../lib/chamber';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { MiniConstellation } from '../components/ConstellationMap';
@@ -13,7 +14,9 @@ import { openMostSigned, rankDossiers } from '../lib/ranking';
 import { concentration, duels, lastWeek } from '../lib/synthesis';
 import { useCore } from '../state/DataContext';
 
-const EXAMPLES = ['CNews', 'loi Duplomb', 'Gaza', 'destitution', 'armes mutilantes', 'chasse à courre', 'Nutri-Score'];
+const EXAMPLES = chamber.id === 'an'
+  ? ['CNews', 'loi Duplomb', 'Gaza', 'destitution', 'armes mutilantes', 'chasse à courre', 'Nutri-Score']
+  : ['retraites', 'handicap', 'AAH', 'chasse', 'vaccins', 'loi Duplomb', 'animaux'];
 
 export function Home() {
   const core = useCore();
@@ -42,8 +45,8 @@ export function Home() {
   return (
     <>
       <section className="lead container" aria-labelledby="lead-titre">
-        <p className="eyebrow eyebrow--accent">Pétitions de l'Assemblée nationale · fichier du {formatDate(fileDate(source))}</p>
-        <h1 id="lead-titre">{(total / 1_000_000).toFixed(1).replace('.', ',')} millions de signatures. Voici ce qu'elles demandent.</h1>
+        <p className="eyebrow eyebrow--accent">Pétitions {chamber.of} · fichier du {formatDate(fileDate(source))}</p>
+        <h1 id="lead-titre">{total >= 2_000_000 ? `${(total / 1_000_000).toFixed(1).replace('.', ',')} millions de signatures` : `${formatNumber(total)} signatures`}. Voici ce qu'elles demandent.</h1>
         <p className="lead__text">
           Sur {formatNumber(counts.petitions)} pétitions, <strong>cinquante portent {Math.round(share * 100)} % des signatures relevées</strong>. Multiplier les pétitions n'agrandit rien.
         </p>

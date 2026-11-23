@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
+import { chamber } from '../lib/chamber';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ExternalLink, Lock } from 'lucide-react';
 import { CompareButton, ShareButton } from '../components/Actions';
@@ -222,7 +223,7 @@ export function Write() {
         <h2 id="pourquoi">Pourquoi cet outil existe</h2>
         <p>
           Ce que vous venez de faire prend quelques secondes. Le site officiel pourrait le proposer à chaque dépôt : avant de lancer une pétition, voir celles qui existent déjà, et
-          rejoindre plutôt que disperser. Rien de cela n'est compliqué à construire aujourd'hui : l'Atlas a été fait en peu de temps, avec les données ouvertes de l'Assemblée nationale.
+          rejoindre plutôt que disperser. Rien de cela n'est compliqué à construire aujourd'hui : l'Atlas a été fait en peu de temps, avec les données ouvertes {chamber.of}.
         </p>
         <p>
           C'est une expérimentation indépendante, sans affiliation institutionnelle. Elle ne permet pas de signer : pour soutenir une pétition, suivez le lien vers le site officiel. Elle sert à montrer

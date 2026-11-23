@@ -35,6 +35,7 @@ export const STATUS_LABEL: Record<Status, string> = {
   archivee: 'Archivée',
   classee: 'Classée',
   expiree: 'Expirée',
+  seuil: 'Seuil atteint',
   inconnu: 'Statut inconnu',
 };
 
@@ -43,6 +44,7 @@ export const STATUS_HELP: Record<Status, string> = {
   archivee: 'La période de soutien est terminée.',
   classee: 'Classée par la commission compétente (voir la décision publiée).',
   expiree: 'Le délai de collecte est écoulé sans atteindre le seuil requis.',
+  seuil: 'La pétition a réuni 100 000 signatures en six mois : la conférence des présidents du Sénat peut l\'inscrire à l\'ordre du jour.',
   inconnu: 'Le statut du jeu de données n\'est pas reconnu.',
 };
 
