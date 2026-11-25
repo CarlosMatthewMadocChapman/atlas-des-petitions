@@ -74,3 +74,6 @@ const LABELS: Record<ChamberId, string> = { an: "Pétitions de l'Assemblée", se
 export const otherSpaces = (Object.keys(DIRS) as ChamberId[])
   .filter((id) => id !== chamber.id)
   .map((id) => ({ id, label: LABELS[id], href: `${import.meta.env.BASE_URL}${chamber.id === 'an' ? '' : '../'}${DIRS[id]}` }));
+
+/** La vue d'ensemble des trois espaces, publiée dans celui de l'Assemblée (/atlas/ensemble/). */
+export const overviewHref = `${import.meta.env.BASE_URL}${chamber.id === 'an' ? '' : '../'}ensemble/`;

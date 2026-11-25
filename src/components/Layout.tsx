@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { chamber, otherSpaces } from '../lib/chamber';
+import { chamber, otherSpaces, overviewHref } from '../lib/chamber';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { fileDate, formatDate } from '../lib/format';
 import { SkyLayer } from './SkyLayer';
@@ -43,6 +43,7 @@ function SiteNav() {
         Favoris{favorites.ids.length > 0 && <span className="nav__count num">{favorites.ids.length}</span>}
       </NavLink>
       <NavLink to="/methode">Méthode et données</NavLink>
+      <a href={overviewHref} className="nav__other">Vue d’ensemble</a>
       {otherSpaces.map((s) => <a key={s.id} href={s.href} className="nav__other">{s.label}</a>)}
     </nav>
   );
@@ -118,6 +119,7 @@ function Footer() {
             {chamber.id === 'an' && <li><a href={`${import.meta.env.BASE_URL}villes/`}>Pétitions locales : où s’adresser à sa ville</a></li>}
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
             {chamber.suiteADonner && <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>}
+            <li><a href={overviewHref}>Vue d’ensemble : les trois portes comparées</a></li>
             {otherSpaces.map((s) => <li key={s.id}><a href={s.href}>{s.label}, dans leur propre espace</a></li>)}
             <li><a href="https://radiodufutur.com/participer/">Participer à Radio du Futur ↗</a></li>
             <li><Link to="/favoris">Vos favoris (stockés sur cet appareil)</Link></li>

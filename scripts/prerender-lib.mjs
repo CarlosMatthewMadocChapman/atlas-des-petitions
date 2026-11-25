@@ -8,6 +8,7 @@
 // Logique pure, sans dépendance : elle reçoit les données déjà chargées et renvoie du HTML.
 
 import { CHECKED_ON as LOCAL_CHECKED_ON, CITIES, OTHER_ROUTES, TO_CHECK } from './local-petitions.mjs';
+import { BUCKETS } from './overview.mjs';
 
 export const STATUS_LABEL = { ouverte: 'Ouverte', archivee: 'Archivée', classee: 'Classée', expiree: 'Expirée', seuil: 'Seuil atteint', retiree: 'Retirée', verification: 'Signatures en vérification', soumise: 'Soumise à la Commission', repondue: 'Réponse de la Commission', inconnu: 'Statut inconnu' };
 export const RELATION_LABEL = {
@@ -133,6 +134,7 @@ export const urls = {
   audit: (ctx) => `${ctx.base}audit/`,
   recovered: (ctx) => `${ctx.base}donnees-retrouvees/`,
   local: (ctx) => `${ctx.base}villes/`,
+  overview: (ctx) => `${ctx.base}ensemble/`,
 };
 
 /** Regroupe les textes très proches d'une constellation (même logique que src/lib/condense.ts). */
@@ -197,7 +199,7 @@ function shell(ctx, { title, description, path, robots = 'index,follow', body, j
     <meta name="twitter:image:alt" content="${esc(alt)}" />${ld}
   </head>
   <body>
-    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a><a href="${esc(urls.local(ctx))}">Pétitions locales</a>` : ''}${otherSpaces(ctx)}</nav></div></header>
+    <header class="header"><div class="container header__bar"><div class="header__identity">${wordmark(ctx)}<a class="header__origin" href="https://radiodufutur.com/">Un projet de Radio du Futur ↗</a><button type="button" class="theme-toggle" aria-label="Changer entre le mode nuit et le mode clair" onclick="var r=document.documentElement,n=r.hasAttribute('data-ciel');n?r.removeAttribute('data-ciel'):r.setAttribute('data-ciel','nuit');try{localStorage.setItem('atlas-theme',n?'clair':'nuit')}catch(e){}"><span class="theme-toggle__clair">Mode clair</span><span class="theme-toggle__nuit">Mode nuit</span></button></div><nav class="nav" aria-label="Navigation"><a href="${esc(ctx.base)}">Ouvrir l'Atlas interactif</a><a href="${esc(urls.app(ctx, '/ecrire'))}">Votre idée</a><a href="${esc(urls.app(ctx, '/methode'))}">Méthode et données</a><a href="${esc(chamberOf(m).id === 'an' ? urls.overview(ctx) : `${ctx.base.replace(/[^/]+\/$/, '')}ensemble/`)}">Vue d’ensemble</a>${chamberOf(m).id === 'an' ? `<a href="${esc(urls.recovered(ctx))}">Pétitions retrouvées</a><a href="${esc(urls.local(ctx))}">Pétitions locales</a>` : ''}${otherSpaces(ctx)}</nav></div></header>
     <main class="main">
 ${body}
     </main>
@@ -443,6 +445,125 @@ ${auditMarkdownToHtml(markdown)}
 
 
 /** Récit daté du rattrapage, plus décompte courant issu des métadonnées versionnées. */
+/** Vue d'ensemble des trois portes (scripts/overview.mjs) : comparer sans mélanger. */
+const PCT = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
+const pct = (x) => `${PCT.format(x * 100)} %`;
+// Couleurs fixes, lisibles en mode clair comme en mode nuit : du plus confidentiel (sable) au plus soutenu (brique).
+const BUCKET_FILL = ['#d9cfb8', '#ecc3b1', '#d98d72', '#c0361a', '#7a1f0c'];
+
+function distributionSvg(doors, buckets) {
+  const W = 640, rowH = 46, left = 112, right = 8, top = 6;
+  const width = W - left - right;
+  const rows = doors.map((d, i) => {
+    let x = left;
+    const y = top + i * rowH;
+    const segs = d.buckets.map((n, k) => {
+      const w = d.measured ? (n / d.measured) * width : 0;
+      const share = d.measured ? n / d.measured : 0;
+      const seg = `<rect x="${x.toFixed(1)}" y="${y}" width="${Math.max(0, w).toFixed(1)}" height="28" fill="${BUCKET_FILL[k]}"><title>${esc(d.short)} : ${NUMBER.format(n)} pétitions (${pct(share)}) ${esc(buckets[k].label)}</title></rect>`
+        + (share >= 0.07 ? `<text x="${(x + w / 2).toFixed(1)}" y="${y + 19}" text-anchor="middle" class="ov-seg ${k >= 3 ? 'ov-seg--dark' : ''}">${pct(share)}</text>` : '');
+      x += w;
+      return seg;
+    }).join('');
+    return `<text x="${left - 10}" y="${y + 19}" text-anchor="end" class="ov-row">${esc(d.short)}</text>${segs}`;
+  }).join('');
+  const legend = buckets.map((b, k) => `<span class="ov-legend__item"><span class="ov-legend__swatch" style="background:${BUCKET_FILL[k]}"></span>${esc(b.label)}</span>`).join('');
+  return `<figure class="ov-figure"><svg viewBox="0 0 ${W} ${top + doors.length * rowH}" role="img" aria-label="Répartition des pétitions par nombre de signatures, pour chaque source">${rows}</svg><figcaption><span class="ov-legend">${legend}</span> signatures par pétition, en part des pétitions de chaque source (pour l’Europe, initiatives dont le registre publie un total).</figcaption></figure>`;
+}
+
+function yearsSvg(d) {
+  const years = Object.keys(d.years).sort();
+  if (!years.length) return '';
+  const first = Number(years[0]), last = Number(years[years.length - 1]);
+  const all = Array.from({ length: last - first + 1 }, (_, i) => String(first + i));
+  const max = Math.max(...all.map((y) => d.years[y] ?? 0), 1);
+  const W = 300, H = 120, bottom = 18, gap = 3;
+  const bw = (W - gap * (all.length - 1)) / all.length;
+  const bars = all.map((y, i) => {
+    const n = d.years[y] ?? 0;
+    const h = ((H - bottom - 14) * n) / max;
+    const x = i * (bw + gap);
+    const label = i === 0 || i === all.length - 1 || all.length <= 8 ? `<text x="${(x + bw / 2).toFixed(1)}" y="${H - 4}" text-anchor="middle" class="ov-tick">${y}</text>` : '';
+    return `<rect x="${x.toFixed(1)}" y="${(H - bottom - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" class="ov-bar"><title>${y} : ${NUMBER.format(n)} pétitions</title></rect>${label}`;
+  }).join('');
+  const peak = all.reduce((a, y) => ((d.years[y] ?? 0) > (d.years[a] ?? 0) ? y : a), all[0]);
+  return `<figure class="ov-years"><figcaption><strong>${esc(d.short)}</strong> <span class="muted">· record en ${peak} : ${NUMBER.format(d.years[peak])} dépôts</span></figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Pétitions déposées chaque année, ${esc(d.name)}">${bars}</svg></figure>`;
+}
+
+export function renderOverview(ctx, ov) {
+  const path = urls.overview(ctx);
+  const title = 'Vue d’ensemble : trois portes, une même envie de peser';
+  const description = 'L’Assemblée nationale, le Sénat et l’Initiative citoyenne européenne comparés côte à côte : volumes, signatures, seuils, rythmes et sujets communs.';
+  const doors = ov.doors;
+  const byId = Object.fromEntries(doors.map((d) => [d.id, d]));
+  const an = byId.an, eu = byId.europe;
+  const href = (d, sub = '') => `${ctx.base}${d.base}${sub}`;
+  const cards = doors.map((d) => `<article class="ov-card">
+      <p class="eyebrow">${esc(d.name)}</p>
+      <p class="ov-card__big num">${NUMBER.format(d.count)} <span>pétitions</span></p>
+      <dl class="ov-card__facts">
+        <div><dt>Depuis</dt><dd>${esc(formatDate(d.first))}${d.id === 'an' ? ' <span class="muted">(début du fichier ouvert)</span>' : ''}</dd></div>
+        <div><dt>Signatures relevées</dt><dd class="num">${NUMBER.format(d.total)}</dd></div>
+        <div><dt>Pétition médiane</dt><dd class="num">${NUMBER.format(d.median)} signatures</dd></div>
+        <div><dt>Au-delà du seuil (${NUMBER.format(d.threshold)})</dt><dd class="num">${NUMBER.format(d.overThreshold)}</dd></div>
+      </dl>${d.withoutTotal ? `<p class="ov-card__rule">${NUMBER.format(d.withoutTotal)} initiatives retirées ou closes sans total publié par le registre ne comptent pas dans la médiane.</p>` : ''}
+      <p class="ov-card__rule">${esc(d.rule)} <a href="${esc(d.ruleSource)}" target="_blank" rel="noopener noreferrer">Source</a></p>
+      <p><a href="${esc(href(d))}">Explorer ${d.id === 'europe' ? 'les initiatives' : 'les pétitions'} ${d.id === 'an' ? 'de l’Assemblée' : d.id === 'senat' ? 'du Sénat' : 'européennes'} →</a></p>
+    </article>`).join('');
+  const concentration = doors.map((d) => `<li><strong>${esc(d.short)}</strong> : ${NUMBER.format(d.onePercent)} pétition${d.onePercent > 1 ? 's' : ''} sur ${NUMBER.format(d.measured)} (1 %) ${d.onePercent > 1 ? 'portent' : 'porte'} <strong>${pct(d.topShare)}</strong> des signatures ; ${pct(d.under100 / d.measured)} en ont moins de 100${d.withoutTotal ? ` (hors ${NUMBER.format(d.withoutTotal)} initiatives sans total publié)` : ''}.</li>`).join('');
+  const themes = [...ov.taxonomy]
+    .map((t) => ({ t, total: doors.reduce((s, d) => s + (d.themes[t.id]?.count ?? 0), 0), everywhere: doors.every((d) => (d.themes[t.id]?.count ?? 0) > 0) }))
+    .filter((x) => x.everywhere)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+  const themeRows = themes.map(({ t }) => `<tr><th scope="row">${esc(t.label)}</th>${doors.map((d) => {
+    const th = d.themes[t.id];
+    const best = th.best ? `<a href="${esc(href(d))}#/petition/${encodeURIComponent(th.best.id)}">${esc(cut(th.best.title, 70))}</a> <span class="muted num">${NUMBER.format(th.best.votes)}</span>` : '';
+    return `<td><a class="num" href="${esc(href(d, `t/${t.id}/`))}">${NUMBER.format(th.count)}</a><br><span class="ov-best">${best}</span></td>`;
+  }).join('')}</tr>`).join('');
+  const body = `<div class="container page method overview">
+    ${crumbs(ctx, [{ label: 'Vue d’ensemble' }])}
+    <header class="page-head">
+      <p class="eyebrow">Vue d’ensemble · trois portes</p>
+      <h1>Trois portes, une même envie de peser</h1>
+      <p class="lede">L’Atlas rassemble ${NUMBER.format(doors.reduce((s, d) => s + d.count, 0))} pétitions venues de trois institutions. Côte à côte, elles racontent deux usages du droit de pétition : ${an ? `à l’Assemblée, la moitié des pétitions réunissent moins de ${NUMBER.format(an.median)} signatures` : ''}${eu ? ` ; en Europe, où chaque initiative est portée par un comité organisé dans sept pays, la médiane atteint ${NUMBER.format(eu.median)} signatures` : ''}. Les données restent séparées : les signatures ne s’additionnent jamais d’une source à l’autre.</p>
+    </header>
+    <div class="ov-cards">${cards}</div>
+    <div class="prose">
+      <section>
+        <h2>Où se joue la participation</h2>
+        <p>La plupart des pétitions restent confidentielles, et quelques-unes concentrent presque tout. Le droit de pétition est ouvert à chacun ; ce qui pèse, c’est le rassemblement autour d’une même demande.</p>
+        ${distributionSvg(doors, BUCKETS)}
+        <ul class="ov-list">${concentration}</ul>
+        <p>Avant de déposer une pétition, chercher celles qui portent déjà la même demande et les rejoindre : c’est à cela que sert l’Atlas. <a href="${esc(urls.app(ctx, '/ecrire'))}">Décrire son idée et trouver les pétitions proches</a>.</p>
+      </section>
+      <section>
+        <h2>Le rythme des dépôts</h2>
+        <p>Chaque source a son histoire. Les dates viennent des fichiers ouverts : l’Atlas ne voit l’Assemblée qu’à partir d’octobre 2020, le Sénat depuis janvier 2020 et l’Europe depuis 2012.</p>
+        <div class="ov-years-grid">${doors.map(yearsSvg).join('')}</div>
+      </section>
+      <section>
+        <h2>Mêmes sujets, plusieurs portes</h2>
+        <p>Les familles thématiques sont les mêmes dans les trois espaces : un même sujet peut ainsi se suivre d’une institution à l’autre, sans mélanger les pétitions. Pour chaque famille, le nombre de pétitions (lien vers la page du thème) et la plus signée.</p>
+        <div style="overflow-x:auto"><table class="ov-themes"><thead><tr><th scope="col">Famille</th>${doors.map((d) => `<th scope="col">${esc(d.short)}</th>`).join('')}</tr></thead><tbody>${themeRows}</tbody></table></div>
+      </section>
+      <section>
+        <h2>Lire ces chiffres</h2>
+        <ul>
+          <li>Les signatures ne sont pas des personnes : une même personne peut signer plusieurs pétitions, et les trois sources ne se comparent qu’en ordre de grandeur.</li>
+          <li>Les seuils et les règles diffèrent d’une institution à l’autre ; chaque carte ci-dessus renvoie vers la règle officielle.</li>
+          <li>Les familles thématiques sont attribuées automatiquement à partir du vocabulaire des textes ; elles ne sont pas officielles.</li>
+          <li>Fichiers : ${doors.map((d) => `${esc(d.short)} au ${esc(formatDate(d.fileDate))}`).join(' · ')}.</li>
+        </ul>
+        <p>Où s’adresser à sa ville ? <a href="${esc(urls.local(ctx))}">Le répertoire des pétitions locales</a>.</p>
+      </section>
+    </div>
+  </div>`;
+  return shell(ctx, { title, description, path, depth: 1, body,
+    jsonLd: { '@context': 'https://schema.org', '@type': 'WebPage', name: title, description,
+      url: `${ctx.origin}${path}`, inLanguage: 'fr' } });
+}
+
 /** Répertoire des pétitions locales : où s'adresser à sa ville (scripts/local-petitions.mjs). Aucun contenu n'est lu. */
 export function renderLocal(ctx) {
   const path = urls.local(ctx);
