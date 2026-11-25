@@ -9,6 +9,7 @@
 
 import { CHECKED_ON as LOCAL_CHECKED_ON, CITIES, OTHER_ROUTES, TO_CHECK } from './local-petitions.mjs';
 import { BUCKETS } from './overview.mjs';
+import { MILESTONES } from './history-voies.mjs';
 
 export const STATUS_LABEL = { ouverte: 'Ouverte', archivee: 'Archivée', classee: 'Classée', expiree: 'Expirée', seuil: 'Seuil atteint', retiree: 'Retirée', verification: 'Signatures en vérification', soumise: 'Soumise à la Commission', repondue: 'Réponse de la Commission', inconnu: 'Statut inconnu' };
 export const RELATION_LABEL = {
@@ -135,6 +136,7 @@ export const urls = {
   recovered: (ctx) => `${ctx.base}donnees-retrouvees/`,
   local: (ctx) => `${ctx.base}villes/`,
   overview: (ctx) => `${ctx.base}ensemble/`,
+  history: (ctx) => `${ctx.base}histoire/`,
 };
 
 /** Regroupe les textes très proches d'une constellation (même logique que src/lib/condense.ts). */
@@ -445,6 +447,78 @@ ${auditMarkdownToHtml(markdown)}
 
 
 /** Récit daté du rattrapage, plus décompte courant issu des métadonnées versionnées. */
+/** L'histoire des trois voies (scripts/history-voies.mjs) : d'où elles viennent, ce qu'il est advenu des pétitions au-delà du seuil. */
+const STATUS_PLAIN = { ouverte: 'ouverte', archivee: 'archivée', classee: 'classée par la commission', expiree: 'expirée', seuil: 'seuil atteint', repondue: 'réponse de la Commission' };
+
+function timelineSvg() {
+  const W = 640, H = 150, x0 = 24, x1 = W - 24;
+  const t = (iso) => { const d = new Date(`${iso}T00:00:00Z`); return d.getUTCFullYear() + d.getUTCMonth() / 12; };
+  const from = 2012, to = 2027;
+  const x = (iso) => x0 + ((t(iso) - from) / (to - from)) * (x1 - x0);
+  const lanes = { europe: 34, senat: 74, an: 114 };
+  const names = { europe: 'Europe', senat: 'Sénat', an: 'Assemblée' };
+  const ticks = [2012, 2014, 2016, 2018, 2020, 2022, 2024, 2026].map((y) => `<text x="${x(`${y}-01-01`).toFixed(1)}" y="${H - 4}" text-anchor="middle" class="ov-tick">${y}</text>`).join('');
+  const rails = Object.entries(lanes).map(([door, y]) => {
+    const first = MILESTONES.filter((m) => m.door === door).map((m) => m.date).sort()[0];
+    return `<text x="${x0}" y="${y - 10}" class="hv-lane">${names[door]}</text><line x1="${x(first).toFixed(1)}" x2="${x1}" y1="${y}" y2="${y}" class="hv-rail"/>`;
+  }).join('');
+  const dots = MILESTONES.map((m) => `<circle cx="${x(m.date).toFixed(1)}" cy="${lanes[m.door]}" r="5" class="hv-dot"><title>${esc(formatDate(m.date))} : ${esc(m.label)}</title></circle>`).join('');
+  return `<figure class="ov-figure"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Frise : ouverture de chaque voie de pétition">${rails}${dots}${ticks}</svg><figcaption>Chaque trait commence à l’ouverture de la voie en ligne ; les points marquent les repères ci-dessous.</figcaption></figure>`;
+}
+
+export function renderHistory(ctx, h) {
+  const path = urls.history(ctx);
+  const title = 'L’histoire des trois voies';
+  const description = 'D’où viennent les pétitions de l’Assemblée nationale, du Sénat et l’Initiative citoyenne européenne, ce qu’elles promettent, et ce qu’il est advenu de celles qui ont franchi leur seuil.';
+  const base = ctx.base;
+  const milestones = MILESTONES.map((m) => `<li><strong>${esc(formatDate(m.date))}</strong> : ${esc(m.label)}. <a href="${esc(m.source)}" target="_blank" rel="noopener noreferrer">Source</a></li>`).join('');
+  const an500 = h.an.filter((p) => p.votes >= 500_000);
+  const anRows = h.an.map((p) => `<tr><td><a href="${esc(`${base}#/petition/${encodeURIComponent(p.id)}`)}">${esc(cut(p.title, 90))}</a></td><td class="num">${NUMBER.format(p.votes)}</td><td>${esc(formatDate(p.published))}</td><td>${esc(STATUS_PLAIN[p.status] ?? p.status)}${p.decision ? `<br><span class="muted">${esc(cut(p.decision, 220))}</span>` : ''}</td></tr>`).join('');
+  const seRows = h.senat.map((p) => `<li><a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.title)}</a> <span class="muted num">${p.votes === null ? '' : `${NUMBER.format(p.votes)} signatures`}</span></li>`).join('');
+  const euRows = h.europe.map((p) => `<tr><td><a href="${esc(`${base}europe/#/petition/${encodeURIComponent(p.id)}`)}">${esc(cut(p.title, 90))}</a></td><td class="num">${NUMBER.format(p.votes)}</td><td class="num">${p.countries || ''}</td><td>${p.answerDate ? esc(formatDate(p.answerDate)) : ''}${p.answerUrl ? ` · <a href="${esc(p.answerUrl)}" target="_blank" rel="noopener noreferrer">la réponse</a>` : ''}</td></tr>`).join('');
+  const body = `<div class="container page method history">
+    ${crumbs(ctx, [{ label: 'L’histoire des trois voies' }])}
+    <header class="page-head">
+      <p class="eyebrow">Histoire et mode d’emploi</p>
+      <h1>L’histoire des trois voies</h1>
+      <p class="lede">Le droit de pétition existe en France depuis la Révolution ; sa forme en ligne n’a que quelques années. Voici d’où viennent les trois voies que réunit l’Atlas, ce que chacune promet, et ce qu’il est réellement advenu des pétitions qui ont franchi leur seuil.</p>
+    </header>
+    <div class="prose">
+      ${timelineSvg()}
+      <ul class="ov-list">${milestones}</ul>
+
+      <section>
+        <h2>Assemblée nationale : être lue, parfois débattue</h2>
+        <p>Le droit de pétition aux assemblées est fixé par l’ordonnance du 17 novembre 1958 et les articles 147 à 151 du Règlement de l’Assemblée (<a href="https://petitions.assemblee-nationale.fr/pages/definition_petition" target="_blank" rel="noopener noreferrer">source</a>). Depuis la réforme de 2019, il s’exerce en ligne. Chaque pétition est renvoyée à une commission, qui peut la classer ou l’examiner. À 100 000 signatures, elle est mise en ligne sur le site de l’Assemblée ; au-delà de 500 000, venues d’au moins 30 départements ou collectivités d’outre-mer, un débat en séance publique devient possible (<a href="https://petitions.assemblee-nationale.fr/pages/parcours_petition" target="_blank" rel="noopener noreferrer">parcours d’une pétition</a>).</p>
+        <p><strong>${NUMBER.format(h.an.length)} pétitions</strong> ont dépassé 100 000 signatures dans le fichier ouvert, dont <strong>${NUMBER.format(an500.length)}</strong> au-delà de 500 000. Leur statut et la décision publiée, telles que les donne le fichier :</p>
+        <div style="overflow-x:auto"><table class="ov-themes"><thead><tr><th scope="col">Pétition</th><th scope="col">Signatures</th><th scope="col">Déposée le</th><th scope="col">Statut et décision publiée</th></tr></thead><tbody>${anRows}</tbody></table></div>
+      </section>
+
+      <section>
+        <h2>Sénat : examinée par la Conférence des présidents</h2>
+        <p>Une pétition qui réunit 100 000 signatures en six mois est examinée par la Conférence des présidents, qui peut aussi se saisir d’une pétition moins signée « présentant un intérêt particulier » (<a href="https://petitions.senat.fr/pages/suites" target="_blank" rel="noopener noreferrer">source</a>).</p>
+        <p>Le Sénat a décidé de donner suite à <strong>${NUMBER.format(h.senat.length)} pétitions</strong>, dont certaines restées sous le seuil. Chaque fiche officielle détaille la suite donnée :</p>
+        <ul>${seRows}</ul>
+      </section>
+
+      <section>
+        <h2>Europe : une réponse publique de la Commission</h2>
+        <p>Une initiative citoyenne européenne est portée par un comité d’au moins sept citoyens de sept pays. Si elle réunit un million de signatures en douze mois, avec un minimum atteint dans au moins sept pays, la Commission européenne doit y répondre publiquement (<a href="https://citizens-initiative.europa.eu/how-it-works_fr" target="_blank" rel="noopener noreferrer">source</a>).</p>
+        <p>Depuis 2012, la Commission a répondu à <strong>${NUMBER.format(h.europe.length)} initiatives</strong>, de la plus récente à la plus ancienne :</p>
+        <div style="overflow-x:auto"><table class="ov-themes"><thead><tr><th scope="col">Initiative</th><th scope="col">Signatures</th><th scope="col">Pays</th><th scope="col">Réponse</th></tr></thead><tbody>${euRows}</tbody></table></div>
+      </section>
+
+      <section>
+        <h2>Ce que ces histoires disent</h2>
+        <p>Franchir un seuil ouvre une porte, sans garantir l’issue : une commission peut classer, une conférence peut ne pas donner suite, une réponse peut décevoir. Ce qui change les choses, c’est d’arriver nombreux et rassemblés. <a href="${esc(urls.app(ctx, '/rejoindre'))}">Rejoindre plutôt que disperser</a> · <a href="${esc(urls.overview(ctx))}">La vue d’ensemble des trois portes</a>.</p>
+      </section>
+    </div>
+  </div>`;
+  return shell(ctx, { title, description, path, depth: 1, body,
+    jsonLd: { '@context': 'https://schema.org', '@type': 'WebPage', name: title, description,
+      url: `${ctx.origin}${path}`, inLanguage: 'fr' } });
+}
+
 /** Vue d'ensemble des trois portes (scripts/overview.mjs) : comparer sans mélanger. */
 const PCT = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 });
 const pct = (x) => `${PCT.format(x * 100)} %`;
@@ -555,7 +629,7 @@ export function renderOverview(ctx, ov) {
           <li>Les familles thématiques sont attribuées automatiquement à partir du vocabulaire des textes ; elles ne sont pas officielles.</li>
           <li>Fichiers : ${doors.map((d) => `${esc(d.short)} au ${esc(formatDate(d.fileDate))}`).join(' · ')}.</li>
         </ul>
-        <p>Où s’adresser à sa ville ? <a href="${esc(urls.local(ctx))}">Le répertoire des pétitions locales</a>.</p>
+        <p>D’où viennent ces trois voies, et qu’est-il advenu des pétitions qui ont franchi leur seuil ? <a href="${esc(urls.history(ctx))}">L’histoire des trois voies</a>. Où s’adresser à sa ville ? <a href="${esc(urls.local(ctx))}">Le répertoire des pétitions locales</a>.</p>
       </section>
     </div>
   </div>`;

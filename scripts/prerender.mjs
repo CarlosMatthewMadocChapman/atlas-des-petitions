@@ -7,7 +7,8 @@
 
 import { copyFile, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { buildAll, buildContext, chamberOf, crawlableIndex, renderAudit, renderOverview, urls } from './prerender-lib.mjs';
+import { buildAll, buildContext, chamberOf, crawlableIndex, renderAudit, renderHistory, renderOverview, urls } from './prerender-lib.mjs';
+import { computeHistory } from './history-voies.mjs';
 import { computeOverview } from './overview.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -49,9 +50,10 @@ const pages = buildAll(ctx);
 pages.set(urls.audit(ctx), renderAudit(ctx, await readFile(path.join(sourceRoot, 'docs/AUDIT-CATALOGUE.md'), 'utf8')));
 // La vue d'ensemble compare les trois espaces : elle vit dans celui de l'Assemblée, à /atlas/ensemble/.
 if (chamberOf(meta).id === 'an') pages.set(urls.overview(ctx), renderOverview(ctx, await computeOverview(root)));
+if (chamberOf(meta).id === 'an') pages.set(urls.history(ctx), renderHistory(ctx, await computeHistory(root)));
 
 // Pages périmées : on repart de zéro pour que les pétitions retirées du fichier disparaissent aussi.
-for (const dir of ['p', 'c', 't', 'audit', 'donnees-retrouvees', 'villes', 'ensemble']) await rm(path.join(outDir, dir), { recursive: true, force: true });
+for (const dir of ['p', 'c', 't', 'audit', 'donnees-retrouvees', 'villes', 'ensemble', 'histoire']) await rm(path.join(outDir, dir), { recursive: true, force: true });
 
 for (const [route, html] of pages) {
   const file = path.join(outDir, route.slice(base.length), 'index.html');

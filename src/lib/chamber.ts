@@ -77,3 +77,6 @@ export const otherSpaces = (Object.keys(DIRS) as ChamberId[])
 
 /** La vue d'ensemble des trois espaces, publiée dans celui de l'Assemblée (/atlas/ensemble/). */
 export const overviewHref = `${import.meta.env.BASE_URL}${chamber.id === 'an' ? '' : '../'}ensemble/`;
+
+/** L'histoire des trois voies, publiée elle aussi dans l'espace de l'Assemblée (/atlas/histoire/). */
+export const historyHref = `${import.meta.env.BASE_URL}${chamber.id === 'an' ? '' : '../'}histoire/`;

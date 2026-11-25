@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { chamber, otherSpaces, overviewHref } from '../lib/chamber';
+import { chamber, historyHref, otherSpaces, overviewHref } from '../lib/chamber';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { fileDate, formatDate } from '../lib/format';
 import { SkyLayer } from './SkyLayer';
@@ -120,6 +120,7 @@ function Footer() {
             <li><Link to="/methode#signaler">Signaler une erreur</Link></li>
             {chamber.suiteADonner && <li><a href="https://suiteadonner.nucom.fr/" target="_blank" rel="noopener noreferrer">Suite à donner — suivi des pétitions</a></li>}
             <li><a href={overviewHref}>Vue d’ensemble : les trois portes comparées</a></li>
+            <li><a href={historyHref}>L’histoire des trois voies</a></li>
             {otherSpaces.map((s) => <li key={s.id}><a href={s.href}>{s.label}, dans leur propre espace</a></li>)}
             <li><a href="https://radiodufutur.com/participer/">Participer à Radio du Futur ↗</a></li>
             <li><Link to="/favoris">Vos favoris (stockés sur cet appareil)</Link></li>

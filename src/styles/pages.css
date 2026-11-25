@@ -1400,3 +1400,19 @@ body {
   margin: 0;
 }
 
+
+/* Histoire des trois voies (/atlas/histoire/) */
+.hv-rail {
+  stroke: var(--rule-strong);
+  stroke-width: 3;
+}
+
+.hv-dot {
+  fill: var(--accent);
+}
+
+.hv-lane {
+  fill: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+}
