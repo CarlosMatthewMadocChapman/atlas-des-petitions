@@ -185,7 +185,7 @@ export function Home() {
         <section aria-labelledby="peu" className="home__section">
           <div className="home__head">
             <h2 id="peu" className="section-title">À peine vues</h2>
-            <Link to="/invisibles" className="more">Les invisibles <ArrowRight size={16} aria-hidden="true" /></Link>
+            <Link to="/rejoindre" className="more">Rejoindre plutôt que disperser <ArrowRight size={16} aria-hidden="true" /></Link>
           </div>
           <PetitionList label="Pétitions peu soutenues">
             {quiet.map((p) => <PetitionRow key={p.id} petition={p} showExcerpt={false} />)}

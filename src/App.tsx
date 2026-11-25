@@ -64,6 +64,8 @@ export function App() {
               <Route path="constellations" element={<Gate><ConstellationsIndex /></Gate>} />
               <Route path="constellations/:id" element={<Gate><ConstellationDetail /></Gate>} />
               <Route path="comparer" element={<Gate><CompareView /></Gate>} />
+              <Route path="rejoindre" element={<Gate><Invisibles /></Gate>} />
+              {/* Ancienne adresse, gardée pour les liens partagés. */}
               <Route path="invisibles" element={<Gate><Invisibles /></Gate>} />
               <Route path="ecrire" element={<Gate><Write /></Gate>} />
               <Route path="favoris" element={<Gate><FavoritesView /></Gate>} />

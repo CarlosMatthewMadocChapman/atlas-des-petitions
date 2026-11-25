@@ -1,139 +1,119 @@
 import { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Dices } from 'lucide-react';
-import { ShareButton } from '../components/Actions';
+import { ArrowRight, Dices } from 'lucide-react';
 import { PetitionList, PetitionRow } from '../components/PetitionRow';
-import { EmptyState } from '../components/States';
+import { chamber, overviewHref } from '../lib/chamber';
 import { surprise } from '../lib/diversify';
-import { plural } from '../lib/format';
+import { formatNumber, plural } from '../lib/format';
+import { gatherings, rallied, scattered, singular, type Gathering } from '../lib/gathering';
 import { useDocumentTitle } from '../lib/hooks';
-import type { Status } from '../lib/types';
 import { useCore } from '../state/DataContext';
-
-const PRESETS = [10, 50, 100, 500];
-const COUNT = 9;
 
 function dailySeed(): number {
   return Math.floor(Date.now() / 86_400_000);
 }
 
+function GatheringCard({ g, tone }: { g: Gathering; tone: 'scattered' | 'rallied' }) {
+  const label = g.dossier.label || g.dossier.terms.slice(0, 3).join(' · ');
+  const others = g.members.length - 1;
+  return (
+    <article className={`gather gather--${tone}`}>
+      <header className="gather__head">
+        <h3 className="gather__title"><Link to={`/constellations/${g.dossier.id}`}>{label}</Link></h3>
+        <p className="gather__facts">
+          <strong className="num">{g.members.length}</strong> pétitions sur ce sujet · la plus signée : <strong className="num">{formatNumber(g.top.votes ?? 0)}</strong>
+          {tone === 'scattered' && g.under100 > 0 && <> · <span className="num">{g.under100}</span> sous 100 signatures</>}
+        </p>
+      </header>
+      {tone === 'scattered' ? (
+        <p className="gather__note">Aucune ne réunit la moitié des soutiens du groupe : la même demande avance en {others + 1} morceaux.</p>
+      ) : (
+        <p className="gather__note">Les soutiens se sont concentrés : {plural(others, 'autre pétition', 'autres pétitions')} sur le même sujet, une seule qui porte.</p>
+      )}
+      {g.join ? (
+        <div className="gather__join">
+          <p className="eyebrow">{g.join.id === g.top.id ? 'À rejoindre' : 'Encore ouverte, à rejoindre'}</p>
+          <PetitionList label={`Pétition à rejoindre : ${label}`}>
+            <PetitionRow petition={g.join} showExcerpt={false} />
+          </PetitionList>
+        </div>
+      ) : (
+        <p className="muted">Toutes les pétitions de ce groupe sont closes.</p>
+      )}
+    </article>
+  );
+}
+
 export function Invisibles() {
   const core = useCore();
   const [params, setParams] = useSearchParams();
-  useDocumentTitle('Les invisibles');
-
-  const threshold = Math.max(1, Number(params.get('moins')) || 50);
+  useDocumentTitle('Rejoindre plutôt que disperser');
   const seed = Number(params.get('graine')) || dailySeed();
-  const theme = params.get('theme') ?? '';
-  const status = (params.get('statut') ?? '') as Status | '';
 
-  const set = (patch: Record<string, string>) => {
-    const next = new URLSearchParams(params);
-    for (const [k, v] of Object.entries(patch)) {
-      if (v) next.set(k, v);
-      else next.delete(k);
-    }
-    setParams(next, { replace: true });
-  };
+  const all = useMemo(() => gatherings(core), [core]);
+  const spread = useMemo(() => scattered(all), [all]);
+  const gathered = useMemo(() => rallied(all), [all]);
+  const lonely = useMemo(() => singular(core), [core]);
+  const picks = useMemo(() => surprise(lonely, seed, 6), [lonely, seed]);
 
-  const pool = useMemo(
-    () =>
-      core.petitions.filter(
-        (p) => p.votes !== null && p.votes < threshold && (!theme || p.themes.includes(theme)) && (!status || p.status === status),
-      ),
-    [core, threshold, theme, status],
-  );
-  const picks = useMemo(() => surprise(pool, seed, COUNT), [pool, seed]);
-  const withVotes = core.petitions.filter((p) => p.votes !== null).length;
-  const underAll = core.petitions.filter((p) => p.votes !== null && p.votes < threshold).length;
-  const share = withVotes ? Math.round((underAll / withVotes) * 100) : 0;
-  const maxBucket = Math.max(...core.stats.vote_buckets.map((b) => b.count));
-
-  const linkParams = new URLSearchParams({ max: String(threshold - 1), tri: 'hasard', graine: String(seed) });
-  if (theme) linkParams.set('theme', theme);
-  if (status) linkParams.set('statut', status);
+  const measured = core.petitions.filter((p) => p.votes !== null && (p.votes > 0 || chamber.id !== 'europe'));
+  const under100 = measured.filter((p) => (p.votes ?? 0) < 100).length;
+  const share = measured.length ? Math.round((under100 / measured.length) * 100) : 0;
+  const grouped = all.reduce((s, g) => s + g.members.length, 0);
 
   return (
     <div className="container page">
       <header className="page-head">
-        <p className="eyebrow eyebrow--accent">Les invisibles</p>
-        <h1>Ce que le classement par popularité laisse de côté</h1>
+        <p className="eyebrow eyebrow--accent">Rejoindre plutôt que disperser</p>
+        <h1>Une demande pèse quand elle se rassemble</h1>
         <p className="lede">
-          Dans le catalogue, {share} % des pétitions comptent moins de {threshold} soutiens. Peu de soutiens ne dit rien de la qualité ni de la justesse d'une proposition :
-          ces textes sont simplement restés hors de vue. Les voici, au hasard et sans hiérarchie.
+          Ici, {share} % des pétitions comptent moins de 100 signatures. Bien souvent, ce n'est pas que personne ne partage l'idée : la même demande a été déposée
+          plusieurs fois, et ses soutiens se répartissent entre des textes voisins. Avant de lancer une pétition, cherchez celle qui la porte déjà.
+        </p>
+        <p className="gather__cta">
+          <Link className="btn btn--primary" to="/ecrire">Décrire mon idée et trouver les pétitions proches <ArrowRight size={16} aria-hidden="true" /></Link>
+          <a className="btn btn--ghost" href={overviewHref}>Comparer les trois portes</a>
         </p>
       </header>
 
-      <section className="invis-controls" aria-label="Réglages">
-        <div className="presets" role="group" aria-label="Seuil de soutiens">
-          <span className="field-label">Moins de</span>
-          {PRESETS.map((n) => (
-            <button key={n} type="button" className={`chip chip--button${threshold === n ? ' is-on' : ''}`} aria-pressed={threshold === n} onClick={() => set({ moins: String(n) })}>
-              {n} soutiens
-            </button>
-          ))}
-        </div>
-        <label className="range">
-          <span className="field-label">Seuil précis : <strong className="num">{threshold}</strong></span>
-          <input type="range" min={5} max={1000} step={5} value={Math.min(threshold, 1000)} onChange={(e) => set({ moins: e.target.value })} aria-valuetext={`moins de ${threshold} soutiens`} />
-        </label>
-        <label className="select-inline">
-          <span className="field-label">Famille</span>
-          <select value={theme} onChange={(e) => set({ theme: e.target.value })}>
-            <option value="">Toutes</option>
-            {core.taxonomy.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
-        </label>
-        <label className="select-inline">
-          <span className="field-label">Statut</span>
-          <select value={status} onChange={(e) => set({ statut: e.target.value })}>
-            <option value="">Tous</option>
-            <option value="ouverte">Ouvertes</option>
-            <option value="archivee">Archivées</option>
-            <option value="classee">Classées</option>
-          </select>
-        </label>
-      </section>
+      {spread.length > 0 && (
+        <section aria-labelledby="eparpillees" className="gather-section">
+          <h2 id="eparpillees" className="section-title">Des demandes éparpillées</h2>
+          <p className="source-note">
+            Groupes de pétitions proches (constellations) où aucune ne réunit la moitié des soutiens du groupe. {formatNumber(grouped)} pétitions appartiennent à un groupe de quatre ou plus.
+            Les signatures de pétitions différentes ne sont jamais additionnées : une même personne a pu en signer plusieurs.
+          </p>
+          <div className="gather-grid">
+            {spread.map((g) => <GatheringCard key={g.dossier.id} g={g} tone="scattered" />)}
+          </div>
+        </section>
+      )}
 
-      <section aria-labelledby="surprise" className="invis-pick">
+      {gathered.length > 0 && (
+        <section aria-labelledby="rassemblees" className="gather-section">
+          <h2 id="rassemblees" className="section-title">Des demandes rassemblées</h2>
+          <p className="source-note">À l'inverse, sur ces sujets, une pétition a fédéré l'essentiel des soutiens : c'est elle qui franchit les seuils.</p>
+          <div className="gather-grid">
+            {gathered.map((g) => <GatheringCard key={g.dossier.id} g={g} tone="rallied" />)}
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="singulieres" className="gather-section">
         <div className="toolbar">
-          <h2 id="surprise" className="section-title">Surprenez-moi</h2>
+          <h2 id="singulieres" className="section-title">Des idées singulières</h2>
           <div className="toolbar__tools">
-            <button type="button" className="btn btn--primary" onClick={() => set({ graine: String(Math.floor(Math.random() * 99999) + 1) })}>
+            <button type="button" className="btn btn--ghost" onClick={() => setParams({ graine: String(Math.floor(Math.random() * 99999) + 1) }, { replace: true })}>
               <Dices size={16} aria-hidden="true" /> Un autre tirage
             </button>
-            <ShareButton path={`/invisibles?${new URLSearchParams({ moins: String(threshold), graine: String(seed), ...(theme ? { theme } : {}), ...(status ? { statut: status } : {}) }).toString()}`} title="Pétitions peu visibles" label="Partager ce tirage" />
           </div>
         </div>
         <p className="source-note">
-          Sélection variée parmi {plural(pool.length, 'pétition', 'pétitions')} sous le seuil, en alternant les familles thématiques et en évitant deux pétitions du même dossier. Tirage n° <span className="num">{seed}</span> : le même lien redonne la même sélection.
+          Peu de soutiens, et aucune pétition proche : ces textes ne doublonnent rien. {plural(lonely.length, 'pétition', 'pétitions')} dans ce cas ; en voici quelques-unes, au hasard.
         </p>
-        {picks.length === 0 ? (
-          <EmptyState title="Aucune pétition sous ce seuil avec ces critères"><p>Augmentez le seuil ou retirez un filtre.</p></EmptyState>
-        ) : (
-          <PetitionList label="Sélection de pétitions peu soutenues">
-            {picks.map((p) => <PetitionRow key={p.id} petition={p} />)}
-          </PetitionList>
-        )}
-        <p>
-          <Link className="btn btn--ghost" to={`/recherche?${linkParams.toString()}`}>
-            Parcourir les {pool.length.toLocaleString('fr-FR')} pétitions sous le seuil
-          </Link>
-        </p>
-      </section>
-
-      <section aria-labelledby="repartition" className="invis-chart">
-        <h2 id="repartition" className="section-title">Répartition des soutiens dans le catalogue</h2>
-        <p className="source-note">Nombre de pétitions par tranche de soutiens, à la date du fichier. Une poignée de pétitions très soutenues concentre l'attention ; la grande majorité est restée discrète.</p>
-        <ul className="bars">
-          {core.stats.vote_buckets.map((b) => (
-            <li key={b.label}>
-              <span className="bars__label num">{b.label}</span>
-              <span className="bars__track" aria-hidden="true"><span className="bars__fill" style={{ width: `${(b.count / maxBucket) * 100}%` }} /></span>
-              <span className="bars__value num">{b.count.toLocaleString('fr-FR')}</span>
-            </li>
-          ))}
-        </ul>
+        <PetitionList label="Idées singulières encore peu connues">
+          {picks.map((p) => <PetitionRow key={p.id} petition={p} />)}
+        </PetitionList>
       </section>
     </div>
   );

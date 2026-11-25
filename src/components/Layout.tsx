@@ -38,7 +38,7 @@ function SiteNav() {
       <NavLink to="/comparer">
         Comparer{compare.ids.length > 0 && <span className="nav__count num">{compare.ids.length}</span>}
       </NavLink>
-      <NavLink to="/invisibles">Les invisibles</NavLink>
+      <NavLink to="/rejoindre">Rejoindre</NavLink>
       <NavLink to="/favoris">
         Favoris{favorites.ids.length > 0 && <span className="nav__count num">{favorites.ids.length}</span>}
       </NavLink>
